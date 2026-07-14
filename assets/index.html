@@ -1,0 +1,1608 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>INANI — Put a number on it</title>
+<meta name="description" content="INANI — sports intelligence for South Africa. Know the numbers. Understand the value.">
+<meta name="theme-color" content="#062A1B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="INANI">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,600;10..72,700;10..72,800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pitch:#062A1B;        /* Deep Pitch — app field */
+  --green:#0B3D28;        /* Inani Green — cards */
+  --field:#0E4A31;        /* Field Green — raised tiles */
+  --gold:#FFB81C;         /* Protea Gold — ≤10% of any view */
+  --chalk:#F5F1E4;        /* Chalk — primary text */
+  --chalk-dim:#9DB6A6;    /* muted text on green */
+  --grow:#37B876;         /* Growth Green — verified / positive */
+  --red-t:#C2403C;        /* Signal Red (text) */
+  --red-f:#E2504C;        /* Signal Red (fills / strokes on dark) */
+  --blue:#4FA3D9;         /* Data Blue (on dark) */
+  --blue-d:#2C6E9E;       /* Data Blue (fills) */
+  --ink:#101410;
+  --line:rgba(245,241,228,.12);
+  --radius:16px;
+  --disp:'Big Shoulders',sans-serif;
+  --body:'Bricolage Grotesque',system-ui,sans-serif;
+  --mono:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#03170E;color:var(--chalk);font-family:var(--body);font-size:16px;line-height:1.45}
+body{display:flex;justify-content:center;min-height:100dvh;background:radial-gradient(1100px 480px at 50% -8%,rgba(79,163,217,.06),transparent 60%),#03170E}
+#app{width:100%;max-width:460px;overflow-x:hidden;min-height:100dvh;background:var(--pitch);display:flex;flex-direction:column;position:relative;box-shadow:0 0 60px rgba(0,0,0,.55)}
+#app::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.3;background:radial-gradient(620px 620px at 50% 118%,transparent 58%,rgba(245,241,228,.05) 58.6%,transparent 59.4%)}
+
+/* HEADER */
+header{display:flex;align-items:center;gap:10px;padding:calc(14px + env(safe-area-inset-top)) 18px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(6,42,27,.95);backdrop-filter:blur(8px);z-index:20}
+.mark{width:30px;height:30px;flex:0 0 30px}
+.wordmark{font-family:var(--disp);font-weight:800;font-size:21px;letter-spacing:.1em}
+.wordmark b{color:var(--gold);font-weight:800}
+.hdr-plan{margin-left:auto;font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.14em;color:var(--ink);background:var(--gold);border-radius:999px;padding:7px 13px;text-transform:uppercase;white-space:nowrap;box-shadow:0 3px 12px rgba(255,184,28,.3)}
+
+/* MAIN */
+main{flex:1;overflow-y:auto;padding:18px 18px calc(76px + env(safe-area-inset-bottom));position:relative;z-index:1}
+body.noauth main{padding-bottom:24px}
+.screen{display:none;animation:fi .25s ease}
+.screen.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* NAV */
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:460px;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(4,26,17,.97);border-top:1px solid var(--line);backdrop-filter:blur(10px);padding-bottom:env(safe-area-inset-bottom);z-index:30}
+body.noauth nav{display:none}
+nav button{appearance:none;background:none;border:0;color:var(--chalk-dim);font:inherit;font-size:9.5px;letter-spacing:.05em;padding:8px 2px 7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+nav button[aria-selected="true"]{color:var(--gold)}
+nav button:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;border-radius:8px}
+
+/* TYPE */
+h1{font-family:var(--disp);font-weight:800;font-size:30px;line-height:1.02;letter-spacing:.015em;margin:4px 0 6px;text-transform:uppercase}
+h2{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.02em;margin:0 0 6px;text-transform:uppercase}
+.kick{font-family:var(--body);font-size:10.5px;letter-spacing:.14em;color:var(--blue);font-weight:700;text-transform:uppercase;display:block;margin-bottom:3px}
+.sub{color:var(--chalk-dim);font-size:13.5px;margin:0 0 16px}
+.cred{font-family:var(--mono);font-size:8px;letter-spacing:.03em;color:var(--chalk-dim);text-transform:uppercase;margin-top:6px;opacity:.5}
+.est-tag{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:var(--blue);border:1px dashed var(--blue-d);border-radius:4px;padding:1px 5px;vertical-align:middle;margin-left:5px}
+.ver-tag{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:var(--grow);border:1px solid rgba(55,184,118,.5);border-radius:4px;padding:1px 5px;vertical-align:middle;margin-left:5px}
+
+/* CARDS */
+.card{background:var(--green);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card.solid{border-left:3px solid var(--grow)}
+.card.dashed{border:1px solid var(--line);border-left:3px solid var(--blue-d)}
+.hair{border:0;border-top:1px solid var(--line);margin:12px 0}
+
+/* VALUE METER */
+.meter{background:linear-gradient(160deg,var(--green) 0%,#0A3322 100%);border:1px solid var(--line);border-left:3px solid var(--grow);border-radius:20px;padding:20px 18px 14px;margin-bottom:16px;position:relative;overflow:hidden}
+.rand{font-family:var(--disp);font-weight:800;font-size:52px;letter-spacing:.01em;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1}
+.rand small{font-size:16px;color:var(--chalk-dim);font-family:var(--body);font-weight:600;letter-spacing:0}
+.ecg{display:block;width:100%;height:52px;margin-top:8px}
+.ecg path{fill:none;stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;stroke-dasharray:640;stroke-dashoffset:640;animation:draw 1.6s .2s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.beatdot{fill:var(--gold);animation:beat 1.1s 1.8s ease-in-out infinite}
+@keyframes beat{0%,100%{r:3}12%{r:5.5}24%{r:3}}
+.pills{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.pill{font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px;background:rgba(79,163,217,.14);color:var(--blue)}
+.pill.g{background:rgba(55,184,118,.14);color:var(--grow)}
+.pill.d{background:rgba(157,182,166,.1);color:var(--chalk-dim)}
+
+/* LIVE DOT */
+.ts{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--chalk-dim);display:flex;align-items:center;gap:5px;margin-top:8px;text-transform:uppercase}
+.ts::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--grow);display:block;flex:0 0 6px;animation:pd 2s infinite}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* FORMS */
+label{display:block;font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--chalk-dim);margin:12px 0 5px}
+input,select{width:100%;background:#07301F;color:var(--chalk);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:15px;outline:none}
+input:focus,select:focus{border-color:var(--blue)}
+input[aria-invalid="true"]{border-color:var(--red-f)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:block;width:100%;text-align:center;background:var(--gold);color:var(--ink);border:0;border-radius:14px;padding:16px 18px;font-family:var(--disp);font-weight:800;font-size:17px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;margin-top:14px;box-shadow:0 6px 22px rgba(255,184,28,.28),inset 0 -2px 0 rgba(0,0,0,.14);transition:transform .12s ease,box-shadow .12s ease}
+.btn:active{transform:translateY(1px) scale(.995);box-shadow:0 3px 10px rgba(255,184,28,.2)}
+.btn.chalk{background:var(--chalk);color:#0B3D28;box-shadow:0 6px 22px rgba(0,0,0,.3),inset 0 -2px 0 rgba(0,0,0,.08)}
+.btn.ghost{background:transparent;color:var(--chalk);border:1.5px solid var(--line);margin-top:8px;box-shadow:none}
+.btn.blue{background:transparent;color:var(--blue);border:1.5px solid var(--blue-d);box-shadow:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.err{color:var(--red-f);font-size:12px;margin-top:8px;display:none}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:#07301F;border-radius:12px;padding:4px;border:1px solid var(--line);gap:4px;margin-top:6px}
+.seg button{border:0;background:none;color:var(--chalk-dim);font:inherit;font-weight:600;padding:9px 4px;border-radius:9px;cursor:pointer;font-size:12.5px}
+.seg button[aria-selected="true"]{background:var(--field);color:var(--chalk);box-shadow:inset 0 0 0 1px rgba(79,163,217,.5)}
+
+/* PLAN CARDS */
+.plan{border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;background:var(--green);cursor:pointer;position:relative}
+.plan[aria-selected="true"]{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.plan .pname{font-family:var(--disp);font-weight:700;font-size:18px;letter-spacing:.03em;text-transform:uppercase}
+.plan .pprice{font-family:var(--disp);font-weight:800;font-size:24px;color:var(--gold);float:right;line-height:1}
+.plan .pprice small{font-size:11px;color:var(--chalk-dim);font-family:var(--body);font-weight:500}
+.plan ul{margin:10px 0 0;padding:0;list-style:none;font-size:12.5px;color:var(--chalk-dim)}
+.plan li{padding:3px 0 3px 18px;position:relative}
+.plan li::before{content:"✓";position:absolute;left:0;color:var(--grow);font-weight:700}
+.plan li.no{color:var(--chalk-dim);opacity:.6}
+.plan li.no::before{content:"✕";color:var(--red-f)}
+.plan .tagline{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--blue);text-transform:uppercase;margin-top:2px}
+
+/* SANDBOX PAY */
+.sandbox{background:rgba(79,163,217,.08);border:1px dashed var(--blue-d);border-radius:12px;padding:12px;font-size:12.5px;color:var(--chalk-dim);line-height:1.55;margin-bottom:14px}
+.sandbox b{color:var(--blue)}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(79,163,217,.3);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LOCKS */
+.lockcard{border:1px solid rgba(226,80,76,.45);border-left:3px solid var(--red-f);border-radius:var(--radius);padding:22px 16px;text-align:center;margin-bottom:14px;background:rgba(226,80,76,.05)}
+.lockcard .lk{width:34px;height:34px;margin:0 auto 10px;display:block;stroke:var(--red-f);fill:none;stroke-width:1.8}
+.lockcard h3{font-family:var(--disp);font-weight:700;font-size:17px;margin:0 0 6px;letter-spacing:.03em;text-transform:uppercase}
+.lockcard p{color:var(--chalk-dim);font-size:12.5px;margin:0 0 14px}
+.lockcard .btn{width:auto;display:inline-block;padding:11px 24px;margin:0}
+.privcard{border:1px solid rgba(226,80,76,.4);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;background:rgba(226,80,76,.05);font-size:12.5px;color:var(--chalk-dim)}
+.privcard b{color:var(--red-f);display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px}
+
+/* PLATFORM LIST */
+.plat-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.plat-row:last-child{border-bottom:0}
+.plat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 38px}
+.plat-icon svg{width:20px;height:20px}
+.plat-name{font-weight:600;font-size:14px}
+.plat-api{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--chalk-dim);margin-top:2px;text-transform:uppercase}
+.plat-ts{font-family:var(--mono);font-size:9px;color:var(--grow);margin-top:3px;display:flex;align-items:center;gap:4px;letter-spacing:.05em;text-transform:uppercase}
+.plat-ts::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--grow);display:block}
+.conn-btn{background:transparent;border:1.5px solid var(--gold);color:var(--gold);border-radius:10px;padding:7px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.conn-btn.live{border:1.5px solid var(--grow);color:var(--grow);background:rgba(55,184,118,.1)}
+
+/* RATE CARD */
+.rc{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13.5px}
+.rc .a{color:var(--chalk-dim)}
+.rc .p{font-variant-numeric:tabular-nums;font-weight:700;color:var(--chalk);text-align:right}
+details{margin-top:10px}
+summary{cursor:pointer;color:var(--blue);font-size:13px;font-weight:600;list-style:none}
+summary::before{content:"▸ "}
+details[open] summary::before{content:"▾ "}
+details p{font-size:12.5px;color:var(--chalk-dim);margin-top:8px;line-height:1.6}
+
+/* BREAKDOWN */
+.plat-bar-row{display:flex;align-items:center;gap:10px;padding:10px 0 10px 10px;border-bottom:1px solid var(--line)}
+.plat-bar-row:last-child{border-bottom:0}
+.plat-bar-row.verified{border-left:2px solid var(--grow)}
+.plat-bar-row.estimate{border-left:2px solid var(--blue-d)}
+.plat-bar-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:0 0 28px}
+.plat-bar-icon svg{width:15px;height:15px}
+.mini-bar{height:4px;border-radius:2px;margin-top:5px;min-width:3px;opacity:.75}
+.total-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0 0;border-top:1px solid var(--line);margin-top:8px}
+.total-row .lbl{font-size:12px;color:var(--chalk-dim);font-weight:600}
+.total-row .val{font-family:var(--disp);font-weight:800;font-size:22px;color:var(--gold)}
+
+/* RANKINGS */
+.switch{display:grid;grid-template-columns:1fr 1fr;background:#07301F;border-radius:12px;padding:4px;margin-bottom:14px;border:1px solid var(--line)}
+.switch button{border:0;background:none;color:var(--chalk-dim);font:inherit;font-weight:600;padding:9px;border-radius:9px;cursor:pointer;font-size:13.5px}
+.switch button[aria-selected="true"]{background:var(--field);color:var(--chalk);box-shadow:inset 0 0 0 1px rgba(79,163,217,.5)}
+.rankrow{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.rankrow:last-child{border-bottom:0}
+.rankrow.open{cursor:pointer}
+.rankrow.me{background:linear-gradient(90deg,rgba(55,184,118,.07),transparent);border-radius:8px;padding-left:6px;margin-left:-6px}
+.rn{font-family:var(--disp);font-weight:800;color:var(--chalk-dim);font-size:17px}
+.rnm{font-weight:600;font-size:14px}
+.rnm .lock-ico{width:11px;height:11px;stroke:var(--red-f);fill:none;stroke-width:2;vertical-align:-1px;margin-left:4px}
+.rcd{font-size:11px;font-weight:500;color:var(--chalk-dim);margin-top:2px}
+.rbar{height:5px;border-radius:4px;background:var(--blue-d);margin-top:5px;min-width:4px;opacity:.7}
+.rbar.v{background:var(--grow)}
+.rf{font-variant-numeric:tabular-nums;font-family:var(--disp);font-weight:700;color:var(--chalk);font-size:16px;text-align:right}
+.insight{border-left:3px solid var(--blue);padding:10px 12px;background:rgba(79,163,217,.06);border-radius:0 10px 10px 0;font-size:13px;margin-top:12px}
+.note{font-size:11.5px;color:var(--chalk-dim);margin-top:10px;line-height:1.5}
+.cmp-check{width:18px;height:18px;accent-color:#2C6E9E;margin-left:8px}
+
+/* ENTITY DETAIL */
+.ath-plat{display:flex;align-items:center;gap:10px;padding:11px 0 11px 10px;border-bottom:1px solid var(--line);cursor:pointer}
+.ath-plat:last-child{border-bottom:0}
+.ath-plat.verified{border-left:2px solid var(--grow)}
+.ath-plat.estimate{border-left:2px solid var(--blue-d)}
+.ath-plat-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 32px}
+.ath-plat-icon svg{width:16px;height:16px}
+.ap-bar{height:3px;border-radius:2px;margin-top:5px;opacity:.7}
+
+/* METRIC TILES */
+.ig4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.ig4-tile{background:var(--field);border-radius:12px;padding:12px;border-left:2px solid transparent}
+.ig4-tile.verified{border-left-color:var(--grow)}
+.ig4-tile.estimate{border-left:2px solid var(--blue-d)}
+.ig4-label{font-size:10.5px;font-weight:600;letter-spacing:.05em;color:var(--chalk-dim);text-transform:uppercase;margin-bottom:4px}
+.ig4-val{font-family:var(--disp);font-weight:800;font-size:24px;color:var(--chalk)}
+.ig4-val.gr{color:var(--grow);font-size:20px}
+.mix-bar{display:flex;gap:5px;height:9px;border-radius:5px;overflow:hidden;margin-top:8px}
+.mix-labels{display:flex;justify-content:space-between;font-size:10.5px;color:var(--chalk-dim);margin-top:5px;flex-wrap:wrap;gap:4px}
+
+/* FEED / DEALS */
+.story{display:block;padding:14px 0;border-bottom:1px solid var(--line)}
+.story:last-child{border-bottom:0}
+.tag{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;font-weight:500;color:var(--ink);background:var(--blue);border-radius:4px;padding:2px 7px;margin-bottom:6px;text-transform:uppercase}
+.tag.w{background:var(--grow)}
+.story h3{margin:0 0 4px;font-size:15px;line-height:1.3;font-weight:600}
+.story p{margin:0;color:var(--chalk-dim);font-size:13px}
+.sv{color:var(--gold);font-weight:700}
+.deal{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--green)}
+.deal .db{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--blue);text-transform:uppercase}
+.deal h3{margin:4px 0 4px;font-size:15px;font-weight:600}
+.deal p{margin:0 0 8px;font-size:13px;color:var(--chalk-dim)}
+.deal .fee{font-weight:700;color:var(--grow);font-size:13.5px;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.back-btn{background:none;border:0;color:var(--blue);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:0 0 12px;display:flex;align-items:center;gap:5px}
+.empty{color:var(--chalk-dim);font-size:13.5px;text-align:center;padding:30px 10px}
+
+/* MODALS / SHEETS */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fi .2s}
+.modal-bg.hidden{display:none}
+.modal{background:var(--green);border:1px solid var(--line);border-radius:24px 24px 0 0;padding:24px 20px calc(28px + env(safe-area-inset-bottom));width:100%;max-width:460px;max-height:86dvh;overflow-y:auto}
+.modal h2{margin:0 0 6px}
+.modal-plat{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.modal-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 46px}
+.perms{background:rgba(0,0,0,.2);border-radius:12px;padding:13px;margin-bottom:16px}
+.perms p{margin:0 0 8px;font-family:var(--mono);font-size:9px;color:var(--chalk-dim);letter-spacing:.1em;text-transform:uppercase}
+.perm{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:7px}
+.perm:last-child{margin-bottom:0}
+.pt{color:var(--grow)}
+.px{color:var(--red-f)}
+.popia{font-size:11px;color:var(--chalk-dim);border-left:2px solid var(--blue-d);padding-left:10px;margin-bottom:18px;line-height:1.55}
+.oauth-redirect{background:rgba(79,163,217,.08);border:1px dashed var(--blue-d);border-radius:12px;padding:12px;margin-bottom:16px;font-size:12.5px;color:var(--chalk-dim);line-height:1.5}
+.oauth-redirect b{color:var(--blue)}
+
+/* COMPARE TRAY */
+#cmp-tray{position:fixed;bottom:calc(64px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 36px);max-width:424px;background:var(--field);border:1px solid var(--blue-d);border-radius:14px;padding:11px 14px;display:none;align-items:center;gap:10px;z-index:40;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#cmp-tray.show{display:flex}
+#cmp-tray .btn{margin:0;width:auto;padding:9px 16px;font-size:13px}
+.cmp-table{width:100%;border-collapse:collapse;font-size:12px}
+.cmp-table th,.cmp-table td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right}
+.cmp-table th:first-child,.cmp-table td:first-child{text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.04em;color:var(--chalk-dim);text-transform:uppercase}
+.cmp-table td{font-variant-numeric:tabular-nums;font-weight:600}
+.cmp-table thead th{font-family:var(--body);font-size:12px;color:var(--chalk);font-weight:700}
+.cmp-best{color:var(--grow)}
+
+/* AUTH HERO */
+.auth-hero{text-align:center;padding:34px 0 10px}
+.auth-hero .mark{width:64px;height:64px;margin:0 auto 14px;display:block}
+.auth-hero h1{font-size:44px;margin:0}
+.auth-hero h1 b{color:var(--gold)}
+
+/* ── PHOTOGRAPHIC HERO SYSTEM ── */
+.hero{position:relative;margin:-18px -18px 18px;padding:88px 18px 14px;background-size:cover;background-position:center 22%;border-bottom:1px solid var(--line);overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,42,27,.18) 0%,rgba(6,42,27,.62) 52%,var(--pitch) 100%)}
+.hero>*{position:relative;z-index:1}
+.hero h1{text-shadow:0 2px 18px rgba(0,0,0,.45)}
+.hero .sub{margin-bottom:2px;text-shadow:0 1px 8px rgba(0,0,0,.5);color:#CFE0D4}
+.hero .kick{text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.hero .back-btn{margin:-70px 0 46px;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.hero.short .back-btn{margin:-46px 0 26px}
+.hero.short{padding-top:64px}
+.hero.tall{margin:-18px -18px 0;min-height:calc(100dvh - 128px);display:flex;flex-direction:column;justify-content:flex-end;padding:120px 18px 26px;border-bottom:0}
+.hero.tall::after{background:linear-gradient(180deg,rgba(6,42,27,.1) 0%,rgba(6,42,27,.42) 46%,rgba(6,42,27,.92) 82%,var(--pitch) 100%)}
+.herofade{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center 18%;transition:opacity 1.4s ease}
+.hero.tall::after{z-index:0}
+.hero.tall .mark{width:54px;height:54px;margin-bottom:14px}
+.hero.tall h1{font-size:clamp(46px,13.5vw,60px);line-height:.94;margin:0 0 10px}
+.hero.tall h1 b{color:var(--gold)}
+.hero .est-note{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#CFE0D4;opacity:.8;margin-top:12px}
+
+/* ENTITY HERO */
+.ehero{margin:-18px -18px 16px;position:relative;padding:120px 18px 14px;background-size:cover;background-position:center 14%;border-bottom:1px solid var(--line)}
+.ehero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,42,27,.1) 0%,rgba(6,42,27,.55) 55%,var(--pitch) 100%)}
+.ehero>*{position:relative;z-index:1}
+.ehero h1{font-size:36px;text-shadow:0 2px 16px rgba(0,0,0,.5)}
+.ehero .back-btn{margin:-100px 0 74px}
+
+/* STORY THUMBS */
+.story{display:flex;gap:12px;align-items:flex-start}
+.sthumb{flex:0 0 62px;width:62px;height:62px;border-radius:10px;background-size:cover;background-position:center 18%;border:1px solid var(--line)}
+.story .sbody{flex:1;min-width:0}
+
+.auth-tag{font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:.2em;color:var(--chalk);text-transform:uppercase;margin:8px 0 4px}
+.auth-sub{color:var(--chalk-dim);font-size:13px;margin:0 auto 24px;max-width:300px}
+.subbrands{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 6px}
+.subbrand{background:var(--green);border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center}
+.subbrand .sb-n{font-family:var(--disp);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+.subbrand .sb-d{font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--chalk-dim);margin-top:3px;text-transform:uppercase}
+
+/* ACCOUNT */
+.acct-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.acct-row:last-child{border-bottom:0}
+.acct-row .k{color:var(--chalk-dim)}
+.demo-plans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.demo-plans button{background:#07301F;border:1px solid var(--line);color:var(--chalk-dim);border-radius:10px;padding:9px 6px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer}
+.demo-plans button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+
+/* SPONSORED / PROMOTED */
+.sp-tag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:var(--ink);background:var(--gold);border-radius:4px;padding:2px 7px;margin-bottom:6px;text-transform:uppercase}
+.story.sponsored{background:rgba(255,184,28,.05);border:1px solid rgba(255,184,28,.25);border-radius:12px;padding:14px 12px;margin:6px 0}
+.promo{display:flex;gap:12px;align-items:center;background:rgba(255,184,28,.05);border:1px solid rgba(255,184,28,.25);border-radius:var(--radius);padding:12px;margin-bottom:14px;cursor:pointer}
+.promo .sthumb{flex:0 0 54px;width:54px;height:54px}
+
+/* TREND CHART */
+.trend svg{display:block;width:100%;height:84px;margin-top:8px}
+.trend .tl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:8px;letter-spacing:.05em;color:var(--chalk-dim);opacity:.6;margin-top:4px;text-transform:uppercase}
+
+/* BRIEFS */
+.deal .applicants{font-size:11.5px;color:var(--chalk-dim);margin:6px 0 0}
+.deal .applicants b{color:var(--grow)}
+.mybrief{border-left:3px solid var(--gold)}
+.status-chip{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--grow);border:1px solid rgba(55,184,118,.5);border-radius:4px;padding:2px 6px;text-transform:uppercase}
+
+#toast{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 36px);max-width:424px;background:var(--field);border:1px solid var(--grow);border-radius:14px;padding:13px 16px;font-size:13px;color:var(--chalk);z-index:90;box-shadow:0 8px 30px rgba(0,0,0,.5);cursor:pointer;animation:fi .25s ease}
+</style>
+</head>
+<body class="noauth">
+<div id="app">
+  <header>
+    <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="20" cy="20" r="17" fill="none" stroke="#FFB81C" stroke-width="2.6"/>
+      <path d="M7 20h6l3-8 5 15 3-7h9" fill="none" stroke="#FFB81C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="wordmark">INA<b>NI</b></div>
+    <span class="hdr-plan" id="hdr-plan">DEMO</span>
+  </header>
+
+  <main>
+
+    <!-- ══ AUTH ══ -->
+    <section class="screen active" id="s-auth">
+      <div class="hero tall" id="auth-hero">
+        <div class="herofade" id="hero-a" style="background-image:url('assets/rugby-scrum.jpg')"></div>
+        <div class="herofade" id="hero-b" style="opacity:0"></div>
+        <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="17" fill="none" stroke="#FFB81C" stroke-width="2.4"/>
+          <path d="M7 20h6l3-8 5 15 3-7h9" fill="none" stroke="#FFB81C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1>Put a<br>number<br><b>on it.</b></h1>
+        <p class="sub" style="font-size:15px;max-width:320px">Sports intelligence for South Africa. Verified numbers. Estimates flagged. Priced in rand.</p>
+        <button class="btn" id="btn-start">Create account →</button>
+        <button class="btn chalk" id="btn-tour">See what's inside</button>
+        <div class="est-note">Demo build · payments simulated · no live integrations</div>
+      </div>
+      <div id="auth-more" style="padding-top:18px">
+        <div class="subbrands">
+          <div class="subbrand"><div class="sb-n">Analytics</div><div class="sb-d">Value engine</div></div>
+          <div class="subbrand"><div class="sb-n">Intelligence</div><div class="sb-d">Rankings</div></div>
+          <div class="subbrand"><div class="sb-n">Insights</div><div class="sb-d">Newsroom</div></div>
+        </div>
+        <p class="note" style="text-align:center;margin-top:14px">Demonstration build. Registration and payment are simulated — no real charge, no live integrations. Verified figures carry a source credential; everything modelled is tagged EST.</p>
+      </div>
+    </section>
+
+    <!-- ══ REGISTER ══ -->
+    <section class="screen" id="s-register">
+      <div class="hero short" style="background-image:url('assets/rugby-varsity.jpg')">
+        <span class="kick">Inani · Registration</span>
+        <h1>Who are you?</h1>
+        <p class="sub">Your account type sets which packages and views you unlock.</p>
+      </div>
+      <div class="card">
+        <label>Account type</label>
+        <div class="seg" id="reg-type" role="tablist">
+          <button role="tab" data-t="athlete" aria-selected="true">Athlete</button>
+          <button role="tab" data-t="team" aria-selected="false">Team / Club</button>
+          <button role="tab" data-t="brand" aria-selected="false">Brand / Agency</button>
+        </div>
+        <label for="r-name" id="r-name-label">Your name</label>
+        <input id="r-name" placeholder="e.g. Siya Kolisi" autocomplete="name">
+        <label for="r-email">Email</label>
+        <input id="r-email" type="email" placeholder="you@example.com" autocomplete="email">
+        <div class="grid2" id="reg-sport-wrap">
+          <div>
+            <label for="r-code">Sport code</label>
+            <select id="r-code">
+              <option value="rugby">Rugby</option>
+              <option value="cricket">Cricket</option>
+              <option value="football">Football</option>
+              <option value="netball">Netball</option>
+              <option value="golf">Golf</option>
+              <option value="swimming">Swimming</option>
+              <option value="athletics">Athletics / other</option>
+              <option value="mma">MMA</option>
+            </select>
+          </div>
+          <div>
+            <label for="r-tier">Level</label>
+            <select id="r-tier">
+              <option value="school">School</option>
+              <option value="varsity">University</option>
+              <option value="pro" selected>Professional</option>
+              <option value="national">National</option>
+            </select>
+          </div>
+        </div>
+        <label style="display:flex;align-items:flex-start;gap:9px;text-transform:none;font-family:var(--body);font-size:12px;letter-spacing:0;color:var(--chalk-dim);margin-top:16px;line-height:1.5;cursor:pointer">
+          <input type="checkbox" id="r-popia" style="width:17px;height:17px;margin:1px 0 0;accent-color:#2C6E9E;flex:0 0 17px">
+          <span>I consent to Inani processing my data to generate media-value analytics (POPIA s11(1)(a)). Read-only. Never sold. Revocable at any time.</span>
+        </label>
+        <p class="err" id="r-err">Please complete your name, a valid email, and POPIA consent.</p>
+        <button class="btn" id="btn-register">Choose a package →</button>
+      </div>
+    </section>
+
+    <!-- ══ PLANS ══ -->
+    <section class="screen" id="s-plans">
+      <div class="hero short" style="background-image:url('assets/cricket-celebrate.jpg')">
+        <span class="kick">Inani · Packages</span>
+        <h1>Pick your package</h1>
+        <p class="sub" id="plans-sub">Indicative launch pricing. Demand side pays; athletes ride nearly free.</p>
+      </div>
+      <div id="plan-list"></div>
+      <button class="btn" id="btn-plan-next" disabled>Continue →</button>
+    </section>
+
+    <!-- ══ PAY (SANDBOX) ══ -->
+    <section class="screen" id="s-pay">
+      <button class="back-btn" data-goto="s-plans">← Packages</button>
+      <span class="kick">Inani · Checkout</span>
+      <h1 id="pay-title">Checkout</h1>
+      <p class="sub" id="pay-sub"></p>
+      <div class="sandbox"><b>SANDBOX PAYMENT.</b> This is a demonstration checkout. No card is charged, no data leaves this page. In production this screen is a PCI-compliant gateway (Paystack / Peach Payments), priced in rand.</div>
+      <div class="card">
+        <label for="c-num">Card number</label>
+        <input id="c-num" inputmode="numeric" value="4242 4242 4242 4242" autocomplete="off">
+        <div class="grid2">
+          <div><label for="c-exp">Expiry</label><input id="c-exp" value="08 / 28" autocomplete="off"></div>
+          <div><label for="c-cvc">CVC</label><input id="c-cvc" value="123" autocomplete="off"></div>
+        </div>
+        <button class="btn" id="btn-pay">Pay <span id="pay-amt"></span> (sandbox) →</button>
+        <div id="pay-wait" style="display:none;text-align:center;padding:16px 0 4px">
+          <div class="spinner"></div>
+          <div style="font-size:13px;color:var(--chalk-dim);margin-top:10px">Simulating gateway… activating your entitlements</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ MY VALUE (athlete / team) ══ -->
+    <section class="screen" id="s-value">
+      <div id="val-noaccounts">
+        <div class="hero" style="background-image:url('assets/rugby-boks-fnb.jpg')">
+          <span class="kick">Inani Analytics · Your number</span>
+          <h1 id="v-name-na">—</h1>
+          <p class="sub" id="v-sub-na">—</p>
+        </div>
+        <div class="card dashed">
+          <div style="text-align:center;padding:18px 6px">
+            <h2>Connect at least one account</h2>
+            <p style="color:var(--chalk-dim);font-size:13px;margin:6px 0 16px">Inani pulls follower counts read-only from each platform API, every 15 minutes. You never type a number.</p>
+            <button class="btn" style="width:auto;display:inline-block;padding:12px 26px;margin:0" data-goto="s-accounts">Connect accounts →</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="val-live" style="display:none">
+        <div class="hero" style="background-image:url('assets/rugby-boks-fnb.jpg')">
+          <span class="kick">Inani Analytics · Verified value</span>
+          <h1 id="v-name">—</h1>
+          <p class="sub" id="v-sub">—</p>
+        </div>
+        <div class="meter">
+          <span class="kick" style="color:var(--chalk-dim)">Estimated media value <span class="est-tag">EST · MODELLED</span></span>
+          <div class="rand"><span id="v-rand">R0</span><small> / month</small></div>
+          <svg class="ecg" viewBox="0 0 320 56" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 34 H70 L84 34 L94 10 L106 48 L118 22 L128 34 H180 L192 34 L200 16 L210 44 L220 34 H320"/>
+            <circle class="beatdot" cx="311" cy="34" r="3"/>
+          </svg>
+          <div class="pills">
+            <span class="pill" id="v-pct">—</span>
+            <span class="pill g" id="v-pp">—</span>
+            <span class="pill d" id="v-plats">—</span>
+          </div>
+          <div class="ts" id="v-ts">Pulling from connected platforms…</div>
+          <div class="cred" id="v-cred">—</div>
+        </div>
+
+        <div class="card solid">
+          <span class="kick">Verified followers by platform</span>
+          <div id="v-breakdown"></div>
+          <div class="total-row">
+            <div class="lbl">Total verified followers</div>
+            <div class="val" id="v-total">—</div>
+          </div>
+        </div>
+
+        <div id="rc-wrap"></div>
+
+        <div class="card">
+          <span class="kick">Add more platforms</span>
+          <p style="font-size:13px;color:var(--chalk-dim);margin:6px 0 12px">Every platform you connect increases your verified reach and your card value.</p>
+          <button class="btn blue" data-goto="s-accounts" style="margin:0">Manage connected accounts →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ ACCOUNTS ══ -->
+    <section class="screen" id="s-accounts">
+      <div class="hero short" style="background-image:url('assets/rugby-warmup.jpg');background-position:center 20%">
+        <button class="back-btn" data-goto="s-value">← My value</button>
+        <span class="kick">Inani Analytics · Data source</span>
+        <h1>Your accounts</h1>
+        <p class="sub" id="acc-sub">Connect your platforms. Read-only pulls every 15 minutes — you consent once.</p>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span class="kick" style="margin:0">All platforms</span>
+          <span style="font-size:12px;color:var(--chalk-dim)"><b id="conn-count" style="color:var(--grow)">0</b> of 10 connected</span>
+        </div>
+        <div id="platform-list"></div>
+      </div>
+      <div class="card solid">
+        <span class="kick" style="color:var(--grow)">What we pull — read only</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;font-size:12.5px">
+          <div>✅ Follower count</div><div>✅ 30-day reach</div>
+          <div>✅ Engagement rate</div><div>✅ Profile visits</div>
+          <div>✅ Follower growth</div><div>✅ Content mix</div>
+          <div>❌ DMs / messages</div><div>❌ Ability to post</div>
+          <div>❌ Password or login</div><div>❌ Payment data</div>
+        </div>
+        <p class="note">POPIA-compliant. Data is used only to calculate your media value. Never sold. Revoke any platform at any time.</p>
+      </div>
+    </section>
+
+    <!-- ══ DISCOVER (brand) ══ -->
+    <section class="screen" id="s-discover">
+      <div class="hero" style="background-image:url('assets/cricket-proteas-bat.jpg');background-position:center 12%">
+        <span class="kick">Inani Intelligence · Brand deep dive</span>
+        <h1>Discover talent</h1>
+        <p class="sub">Rank every code by engagement and reach. Shortlist and compare before you spend a rand.</p>
+      </div>
+      <div class="card">
+        <div class="grid2">
+          <div>
+            <label for="d-code">Code</label>
+            <select id="d-code">
+              <option value="all">All codes</option>
+              <option value="Rugby">Rugby</option>
+              <option value="Cricket">Cricket</option>
+              <option value="Football">Football</option>
+              <option value="Football (W)">Football (W)</option>
+              <option value="MMA">MMA</option>
+            </select>
+          </div>
+          <div>
+            <label for="d-sort">Sort by</label>
+            <select id="d-sort">
+              <option value="eng">Engagement rate</option>
+              <option value="reach">30-day reach</option>
+              <option value="foll">Followers</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div id="d-list"></div>
+      </div>
+      <p class="note">Reach and engagement are modelled estimates (EST) until each athlete consents to a verified pull. Personal rate cards are private — shared only when an athlete accepts your enquiry.</p>
+    </section>
+
+    <!-- ══ PULSE / INSIGHTS ══ -->
+    <section class="screen" id="s-pulse">
+      <div class="hero" style="background-image:url('assets/rugby-sharks-story.jpg');background-position:center 8%">
+        <span class="kick">Inani Insights · Worth knowing.</span>
+        <h1>Pulse</h1>
+        <p class="sub">Deals, valuations and moves in SA sport — numbers attached.</p>
+      </div>
+      <div class="card" id="feed"></div>
+      <p class="note">Sources: public reporting — SA Rugby AR 2025, SA20, FIFA, World Rugby, Cash N Sport. Editorial layer of the Inani Insights newsroom.</p>
+    </section>
+
+    <!-- ══ RANKINGS / INTELLIGENCE ══ -->
+    <section class="screen" id="s-rank">
+      <div class="hero" style="background-image:url('assets/football-stadium.jpg');background-position:center 40%">
+        <span class="kick">Inani Intelligence · Influence index</span>
+        <h1 id="rank-h1">Rankings</h1>
+        <p class="sub" id="rank-sub">All-platform followers combined. Verified figures carry a green stroke; estimates a blue stroke and EST tag.</p>
+      </div>
+      <div class="switch" role="tablist">
+        <button id="tab-ath" role="tab" aria-selected="true">Athletes</button>
+        <button id="tab-team" role="tab" aria-selected="false">Teams</button>
+      </div>
+      <div id="rank-lock"></div>
+      <div class="card" id="rank-card">
+        <div id="ranklist"></div>
+        <div class="insight" id="rankinsight"></div>
+      </div>
+      <div id="rank-promo"></div>
+      <p class="note" id="rank-note"></p>
+    </section>
+
+    <!-- ══ ENTITY DETAIL ══ -->
+    <section class="screen" id="s-entity">
+      <div class="ehero" id="a-hero">
+        <button class="back-btn" id="back-rank">← Rankings</button>
+        <span class="kick" id="a-kick">Inani Intelligence · Profile</span>
+        <h1 id="a-name">—</h1>
+        <p class="sub" id="a-sub">—</p>
+      </div>
+      <div class="ig4" id="a-tiles"></div>
+      <div class="card trend" id="a-trend"></div>
+      <div class="card">
+        <span class="kick">Followers by platform — tap to drill in</span>
+        <div id="a-plats"></div>
+      </div>
+      <div id="a-rc"></div>
+      <div class="insight">One touchpoint: every platform's numbers in one place — no opening five apps to screenshot analytics.</div>
+    </section>
+
+    <!-- ══ PLATFORM DRILL ══ -->
+    <section class="screen" id="s-platform">
+      <button class="back-btn" id="back-ath">← <span id="p-backname">—</span></button>
+      <span class="kick" id="p-label">Platform insights</span>
+      <h1 id="p-name">—</h1>
+      <p class="sub" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span id="p-platname">—</span><span id="p-vertag"></span></p>
+      <div class="ig4" id="p-tiles"></div>
+      <div class="card trend" id="p-growcard">
+        <span class="kick">Follower growth — 12 months</span>
+        <div style="font-family:var(--disp);font-weight:800;font-size:30px;color:var(--grow);margin-top:4px" id="p-grow">—</div>
+        <div id="p-trend"></div>
+        <div class="cred" id="p-growcred"></div>
+      </div>
+      <div class="card">
+        <span class="kick">Content mix — 30d reach</span>
+        <div class="mix-bar" id="p-mix"></div>
+        <div class="mix-labels" id="p-mixlab"></div>
+        <div class="cred" id="p-mixcred"></div>
+      </div>
+    </section>
+
+    <!-- ══ DEALS ══ -->
+    <section class="screen" id="s-deals">
+      <div class="hero" style="background-image:url('assets/rugby-boks-picknpay.jpg');background-position:center 30%">
+        <span class="kick">Inani · Marketplace</span>
+        <h1>Open briefs</h1>
+        <p class="sub" id="deals-sub">Brands looking for verified athletes. Verified data converts enquiries 3× better.</p>
+      </div>
+      <div id="deals"></div>
+      <p class="note">Sample briefs. The live marketplace charges a success fee only when a deal closes (8–12%).</p>
+    </section>
+
+    <!-- ══ ACCOUNT ══ -->
+    <section class="screen" id="s-account">
+      <div class="hero short" style="background-image:url('assets/rugby-sharks-coach.jpg');background-position:center 16%">
+        <span class="kick">Inani · Account</span>
+        <h1 id="ac-name">Account</h1>
+        <p class="sub" id="ac-sub">—</p>
+      </div>
+      <div class="card">
+        <div class="acct-row"><span class="k">Package</span><b id="ac-plan">—</b></div>
+        <div class="acct-row"><span class="k">Account type</span><b id="ac-type">—</b></div>
+        <div class="acct-row"><span class="k">Email</span><b id="ac-email">—</b></div>
+        <div class="acct-row"><span class="k">Billing</span><b>Sandbox · no live charge</b></div>
+        <button class="btn" data-goto="s-plans" style="margin-top:14px">Change package →</button>
+      </div>
+      <div class="card dashed">
+        <span class="kick">Demo controls — investor preview</span>
+        <p style="font-size:12.5px;color:var(--chalk-dim);margin:6px 0 0">Switch packages instantly to preview each entitlement level. In production this requires checkout.</p>
+        <div class="demo-plans" id="demo-plans"></div>
+      </div>
+      <div class="card">
+        <span class="kick">Compliance</span>
+        <p style="font-size:12.5px;color:var(--chalk-dim);margin:8px 0 0;line-height:1.6">POPIA s11(1)(a) consent on record. All pulls read-only. Estimates always labelled EST with methodology version. No AI logo detection. No broadcast tracking. No fabricated live data — this demo simulates flows and says so wherever it does.</p>
+      </div>
+      <button class="btn ghost" id="btn-signout">Sign out (reset demo)</button>
+    </section>
+
+  </main>
+
+  <nav role="tablist" aria-label="Sections" id="mainnav"></nav>
+</div>
+
+<!-- OAUTH MODAL -->
+<div class="modal-bg hidden" id="oauth-modal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-plat">
+      <div class="modal-icon" id="modal-icon"></div>
+      <div>
+        <div style="font-family:var(--disp);font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.03em" id="modal-title">—</div>
+        <div style="font-size:12px;color:var(--chalk-dim)">Read-only · POPIA compliant · revoke anytime</div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--chalk-dim);margin:0 0 14px" id="modal-desc">—</p>
+    <div class="perms">
+      <p>Inani will be able to:</p>
+      <div class="perm"><span class="pt">✓</span> Read your follower count</div>
+      <div class="perm"><span class="pt">✓</span> Read your 30-day reach and engagement</div>
+      <div class="perm"><span class="pt">✓</span> Read your content format breakdown</div>
+      <div class="perm"><span class="px">✗</span> Post on your behalf</div>
+      <div class="perm"><span class="px">✗</span> Access your messages or DMs</div>
+      <div class="perm"><span class="px">✗</span> Access payment information</div>
+    </div>
+    <div class="oauth-redirect">
+      <b>Demo mode:</b> this simulates the connection flow with sample data. <b>In production:</b> Authorise opens <span id="modal-platform-domain">the platform</span>'s official login — Inani never sees your password. Tokens are stored encrypted server-side, used only for read-only pulls every 15 minutes.
+    </div>
+    <p class="popia">POPIA s11(1)(a) consent. Your data generates your media value and rate card only. Never sold. Revocable at any time.</p>
+    <div id="modal-connecting" style="display:none;text-align:center;padding:10px 0 4px">
+      <div class="spinner"></div>
+      <div style="font-size:13px;color:var(--chalk-dim);margin-top:10px" id="modal-conn-msg">Connecting…</div>
+    </div>
+    <div id="modal-btns">
+      <button class="btn" id="modal-ok">Authorise Inani →</button>
+      <button class="btn ghost" id="modal-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPSELL SHEET -->
+<div class="modal-bg hidden" id="upsell-modal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <svg class="lk" style="width:34px;height:34px;stroke:var(--red-f);fill:none;stroke-width:1.8;display:block;margin:0 auto 10px" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    <h2 style="text-align:center" id="up-title">Locked</h2>
+    <p style="text-align:center;color:var(--chalk-dim);font-size:13px;margin:0 0 16px" id="up-body">—</p>
+    <button class="btn" id="up-go">See packages →</button>
+    <button class="btn ghost" id="up-close">Not now</button>
+  </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div class="modal-bg hidden" id="cmp-modal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <span class="kick">Inani Intelligence · Compare</span>
+    <h2>Side by side</h2>
+    <div style="overflow-x:auto"><table class="cmp-table" id="cmp-table"></table></div>
+    <p class="note">Reach & engagement are modelled estimates (EST · MV-1.3) unless a verified pull exists. Personal rate cards remain private.</p>
+    <button class="btn ghost" id="cmp-close">Close</button>
+  </div>
+</div>
+
+<div id="cmp-tray">
+  <span style="font-size:13px;flex:1"><b id="cmp-count">0</b> selected</span>
+  <button class="btn" id="cmp-open">Compare →</button>
+</div>
+<script>
+"use strict";
+// ═══════════════════════════════════════════════════
+// INANI DEMO — Gate 6 core app demo build
+// Brand: Gate 2 v2 (ratified 13 Jul 2026) · MV-1.3
+// Hard boundaries: no AI logo detection, no broadcast
+// tracking, no fake integrations — everything simulated
+// is labelled; every estimate carries an EST tag.
+// ═══════════════════════════════════════════════════
+const MV = "MV-1.3";
+const $ = id => document.getElementById(id);
+const fmt = n => (n==null||isNaN(n)) ? "—" : n>=1e6 ? (n/1e6).toFixed(1).replace(".0","")+"m" : n>=1e3 ? Math.round(n/1e3)+"k" : ""+Math.round(n);
+const fmtR = n => "R"+Math.round(n).toLocaleString("en-ZA");
+const pct1 = n => (Math.round(n*10)/10).toFixed(1)+"%";
+const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const today = () => { const d=new Date(); return String(d.getDate()).padStart(2,"0")+" "+MONTHS[d.getMonth()]+" "+d.getFullYear(); };
+const cred = src => (src+" · "+today()+" · "+MV).toUpperCase();
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const CODES = {rugby:"Rugby",cricket:"Cricket",football:"Football",netball:"Netball",golf:"Golf",swimming:"Swimming",athletics:"Athletics",mma:"MMA"};
+const TIERS = {school:"School",varsity:"University",pro:"Professional",national:"National"};
+
+// ── PLATFORMS ──────────────────────────────────────
+const PLATFORMS = [
+  { id:"ig",       name:"Instagram",   api:"Meta Creator API v18", domain:"instagram.com", color:"#E1306C", bg:"linear-gradient(135deg,#833AB4,#E1306C,#F77737)", desc:"Followers, reach, engagement, Reels, Stories — via Meta Creator API.", mix:["Reels","Posts","Stories","Lives"] },
+  { id:"tiktok",   name:"TikTok",      api:"TikTok Creator API",   domain:"tiktok.com",    color:"#69C9D0", bg:"#010101", desc:"Followers, video views, engagement — via TikTok Creator API.", mix:["Videos","Lives","Stories","Duets"] },
+  { id:"fb",       name:"Facebook",    api:"Meta Graph API v19",   domain:"facebook.com",  color:"#1877F2", bg:"#1877F2", desc:"Page followers, reach, post engagement — via Meta Graph API.", mix:["Videos","Photos","Reels","Text"] },
+  { id:"x",        name:"X (Twitter)", api:"X API v2",             domain:"x.com",         color:"#F5F5F5", bg:"#000000", desc:"Followers, impressions, engagement — via X API v2.", mix:["Posts","Reposts","Replies","Spaces"] },
+  { id:"yt",       name:"YouTube",     api:"YouTube Data API v3",  domain:"youtube.com",   color:"#FF0000", bg:"#FF0000", desc:"Subscribers, views, watch time — via YouTube Data API v3.", mix:["Long-form","Shorts","Lives","Premieres"] },
+  { id:"linkedin", name:"LinkedIn",    api:"LinkedIn API v2",      domain:"linkedin.com",  color:"#0A66C2", bg:"#0A66C2", desc:"Followers, post impressions — via LinkedIn API v2.", mix:["Articles","Posts","Videos","Docs"] },
+  { id:"snapchat", name:"Snapchat",    api:"Snap Kit Creator API", domain:"snapchat.com",  color:"#FFFC00", bg:"#FFFC00", desc:"Subscribers, story views — via Snap Kit Creator API.", mix:["Snaps","Stories","Spotlight","Lenses"] },
+  { id:"threads",  name:"Threads",     api:"Threads API (Meta)",   domain:"threads.net",   color:"#AAAAAA", bg:"#101010", desc:"Followers, post reach — via Meta Threads API.", mix:["Posts","Reposts","Replies","Quotes"] },
+  { id:"pinterest",name:"Pinterest",   api:"Pinterest API v5",     domain:"pinterest.com", color:"#E60023", bg:"#E60023", desc:"Followers, Pin reach — via Pinterest API v5.", mix:["Pins","Videos","Stories","Idea Pins"] },
+  { id:"twitch",   name:"Twitch",      api:"Twitch Helix API",     domain:"twitch.tv",     color:"#9146FF", bg:"#9146FF", desc:"Followers, avg viewers, stream stats — via Twitch Helix API.", mix:["Streams","Clips","Highlights","VODs"] }
+];
+const ICONS = {
+  ig:`<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.2" fill="white" stroke="none"/></svg>`,
+  tiktok:`<svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.77 0 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-6.33 6.33 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34v-7a8.17 8.17 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.73z"/></svg>`,
+  fb:`<svg viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`,
+  x:`<svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
+  yt:`<svg viewBox="0 0 24 24"><path fill="white" d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.97C5.12 20 12 20 12 20s6.88 0 8.59-.45a2.78 2.78 0 0 0 1.95-1.97A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#FF0000"/></svg>`,
+  linkedin:`<svg viewBox="0 0 24 24" fill="white"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>`,
+  snapchat:`<svg viewBox="0 0 24 24" fill="black"><path d="M12.166 2C9.077 2 7.006 3.443 6.15 5.8c-.196.534-.166 3.666-.166 3.666L4.7 9.8c-.16.037-.44.204-.51.546a.65.65 0 0 0 .226.607c.12.1.244.148.37.148.165 0 .318-.053.437-.146.22 1.194.67 2.386 1.477 3.17.017.016.034.03.05.046-1.174.447-1.96.94-1.96 1.779 0 .55.433.965.977.965.27 0 .555-.085.847-.196a8.08 8.08 0 0 1 2.027-.387 8.26 8.26 0 0 1 1.98.286c1.2.324 1.99.99 3.3.99.64 0 1.185-.208 1.52-.55.286-.29.41-.69.324-1.074a1.51 1.51 0 0 0-.484-.86c.016-.014.034-.03.05-.046.807-.783 1.257-1.976 1.477-3.17.12.093.272.147.437.147.126 0 .25-.048.37-.149a.649.649 0 0 0 .226-.606c-.07-.342-.35-.51-.51-.547l-1.285-.334S18.166 6.334 17.97 5.8C17.114 3.443 15.042 2 11.953 2h.213z"/></svg>`,
+  threads:`<svg viewBox="0 0 24 24" fill="white"><path d="M12.186 2c-5.344 0-9.186 3.82-9.186 10 0 6.18 3.842 10 9.186 10 4.43 0 7.57-2.415 8.814-6.5H17.9c-1.02 2.46-3.1 4-5.714 4C8.14 19.5 5.5 16.38 5.5 12c0-4.38 2.64-7.5 6.686-7.5 3.36 0 5.54 1.98 6.214 4.85H22c-.714-4.56-4.02-7.35-9.814-7.35z"/></svg>`,
+  pinterest:`<svg viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.083.101.095.19.07.293l-.334 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>`,
+  twitch:`<svg viewBox="0 0 24 24" fill="white"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>`
+};
+const LOCK_SVG = `<svg class="lock-ico" viewBox="0 0 24 24" aria-label="locked"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
+
+// ── SEED DATA — verified pulls solid, estimates dashed + EST ──
+const VP = "PUBLIC PROFILE PULL";
+const EC = "MODELLED — CONSENT REQUIRED";
+function P(f,v,src){ return {f, v, ts: v ? cred(src||VP) : (f?cred(EC):"—")}; }
+const Z = () => P(0,false);
+const ATHLETES = [
+  { name:"AB de Villiers", code:"Cricket",
+    platforms:{ ig:P(29900000,true), tiktok:Z(), fb:P(4200000,false), x:P(1900000,false), yt:P(890000,false), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:29900000, totalAll:36890000, signal:"29.9M IG verified · India/IPL-driven · other platforms estimated" },
+  { name:"Siya Kolisi", code:"Rugby",
+    platforms:{ ig:P(1600000,true), tiktok:P(363600,true), fb:P(60000,false), x:P(210000,false), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:1963600, totalAll:2233600, signal:"IG 1.6M verified · TikTok 363.6K verified · rest estimated" },
+  { name:"Faf du Plessis", code:"Cricket",
+    platforms:{ ig:P(2000000,false), tiktok:Z(), fb:Z(), x:P(2000000,false), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:4000000, signal:"All estimates — consent required to verify" },
+  { name:"Itumeleng Khune", code:"Football",
+    platforms:{ ig:P(1400000,false), tiktok:Z(), fb:P(100000,false), x:P(500000,false), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:2000000, signal:"All estimates — consent required to verify" },
+  { name:"Kagiso Rabada", code:"Cricket",
+    platforms:{ ig:P(900000,false), tiktok:Z(), fb:P(50000,false), x:P(250000,false), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:1200000, signal:"All estimates — consent required to verify" },
+  { name:"Dricus du Plessis", code:"MMA",
+    platforms:{ ig:P(918000,false), tiktok:P(120000,false), fb:Z(), x:P(85000,false), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:1123000, signal:"All estimates — consent required to verify" },
+  { name:"Thembi Kgatlana", code:"Football (W)",
+    platforms:{ ig:P(650000,false), tiktok:P(180000,false), fb:P(50000,false), x:P(200000,false), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:1080000, signal:"All estimates — consent required to verify" },
+  { name:"Cheslin Kolbe", code:"Rugby",
+    platforms:{ ig:P(700000,false), tiktok:P(95000,false), fb:Z(), x:Z(), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:795000, signal:"All estimates — consent required to verify" }
+];
+const TEAMS = [
+  { name:"Orlando Pirates", code:"Football",
+    platforms:{ ig:P(1100000,true), tiktok:P(1700000,true), fb:P(5400000,true), x:P(2100000,true), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:10300000, totalAll:10300000, signal:"All four major platforms verified" },
+  { name:"Kaizer Chiefs", code:"Football",
+    platforms:{ ig:P(1000000,false), tiktok:P(373600,true), fb:P(5800000,true), x:P(3100000,true), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:9273600, totalAll:10273600, signal:"FB, X, TikTok verified · IG estimated" },
+  { name:"Springboks", code:"Rugby",
+    platforms:{ ig:P(1200000,false), fb:P(3100000,false), x:P(1100000,false), tiktok:P(350000,false), yt:P(250000,false), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:6000000, signal:"All estimates — pending SARU founding-partner pull" },
+  { name:"Mamelodi Sundowns", code:"Football",
+    platforms:{ fb:P(3200000,false), x:P(900000,false), ig:P(700000,false), tiktok:P(200000,false), yt:Z(), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:5000000, signal:"All estimates — consent required to verify" },
+  { name:"Proteas (men)", code:"Cricket",
+    platforms:{ fb:P(2100000,false), x:P(1200000,false), ig:P(800000,false), tiktok:P(220000,false), yt:P(380000,false), linkedin:Z(), snapchat:Z(), threads:Z(), pinterest:Z(), twitch:Z() },
+    totalV:0, totalAll:4700000, signal:"All estimates — pending CSA founding-partner pull" }
+];
+
+// Deterministic modelled metrics (EST) — stable per entity, clearly labelled.
+function hash(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))>>>0; } return h; }
+const ENG_BASE = {"Rugby":4.2,"Cricket":3.1,"Football":3.6,"Football (W)":5.4,"MMA":6.2,"Netball":5.0};
+function model(e){
+  const h=hash(e.name);
+  const eng=(ENG_BASE[e.code]||3.5)+((h%17)/10-0.8);          // engagement rate %
+  const reach=Math.round(e.totalAll*(1.55+((h>>4)%9)/20));      // 30d reach
+  const engaged=Math.round(reach*eng/100);
+  const growth=Math.round(e.totalAll*(0.008+((h>>8)%7)/1000));  // monthly growth
+  return {eng:Math.max(1.2,eng), reach, engaged, growth};
+}
+
+// ── VALUATION ENGINE (per business plan, anchored to 2022 Springbok PR card) ──
+const RATES = {rugby:70,cricket:60,football:52,mma:48,golf:48,netball:34,swimming:35,athletics:30};
+const TIER_W = {school:0.18,varsity:0.38,pro:1.0,national:1.6};
+const ASSETS = [
+  ["Instagram feed post (still)",1.00],["Instagram Reel / video",1.22],
+  ["Instagram Story (still)",0.56],["Instagram Story (video)",0.78],
+  ["TikTok video",1.18],["TikTok LIVE",0.90],
+  ["Facebook post",0.60],["X post",0.33],
+  ["YouTube integration (mention)",1.35],["YouTube Short",0.85],
+  ["LinkedIn post",0.45],["Snapchat Story",0.38],
+  ["Appearance (half-day, in person)",1.11],["Appearance (half-day, online)",0.67]
+];
+
+// ── PACKAGES & ENTITLEMENTS ────────────────────────
+const PLANS = {
+  free:       { name:"Supporter — Free", short:"Free", price:0,    for:["athlete","team","brand"], tagline:"Rankings only",
+                feats:["Full influence rankings — athletes & teams","Your own profile & connected accounts","Pulse newsroom & open briefs"],
+                nofeats:["Insights on any other athlete or team","Rand rate card"] },
+  ath_basic:  { name:"Athlete Pro", short:"Athlete Pro", price:99,  for:["athlete"], tagline:"Know your worth.",
+                feats:["Your full analytics & rand media value","Your personal rate card (per asset)","Top-20 leaderboard in your code","Opportunity alerts"],
+                nofeats:["Insights on other athletes","Rankings outside your code"] },
+  ath_comp:   { name:"Athlete Elite", short:"Athlete Elite", price:299, for:["athlete"], tagline:"Full intelligence",
+                feats:["Everything in Athlete Pro","Full rankings — every code, athletes & teams","Open any profile: reach, engagement, growth","Priority marketplace placement"],
+                nofeats:["Other athletes' rate cards — private, always"] },
+  team_basic: { name:"Team Pro", short:"Team Pro", price:999, for:["team"], tagline:"Price your property",
+                feats:["Your property's analytics & media value","Your team rate card & inventory pricing","Top-20 team leaderboard in your code"],
+                nofeats:["Insights on other teams or athletes","Rankings outside your code"] },
+  team_comp:  { name:"Team Elite", short:"Team Elite", price:2499, for:["team"], tagline:"Full intelligence",
+                feats:["Everything in Team Pro","Full rankings — every code, athletes & teams","Open any profile: reach, engagement, growth","Benchmarking vs cohort medians"],
+                nofeats:["Other teams' or athletes' rate cards — private, always"] },
+  brand_prem: { name:"Brand Premium", short:"Brand Premium", price:4999, for:["brand"], tagline:"Pick with the numbers",
+                feats:["Cross-code deep dive: engagement & reach","Discover, filter, compare & shortlist talent","Full rankings — athletes & teams, every code","Estimated value corridors per cohort","Post briefs to the marketplace","Sponsored placements — promoted briefs & profiles, always labelled"],
+                nofeats:["Personal rate cards — shared only when an athlete accepts your enquiry"] }
+};
+function ent(){
+  const p = ST.plan, t = ST.user ? ST.user.type : "athlete";
+  const E = { rankScope:"list", openOthers:false, ownRateCard:false, discover:false, corridor:false, lockedTab:null };
+  if(p==="ath_basic"){ E.rankScope="code20"; E.ownRateCard=true; E.lockedTab="team"; }
+  if(p==="team_basic"){ E.rankScope="code20"; E.ownRateCard=true; E.lockedTab="ath"; }
+  if(p==="ath_comp"||p==="team_comp"){ E.rankScope="all"; E.openOthers=true; E.ownRateCard=true; }
+  if(p==="brand_prem"){ E.rankScope="all"; E.openOthers=true; E.discover=true; E.corridor=true; }
+  E.type=t;
+  return E;
+}
+
+// ── STATE + SAFE STORAGE ───────────────────────────
+const ST = { user:null, plan:"free", pendingPlan:null, connected:{}, data:{}, cur:{entity:null,isTeam:false,platform:null,fromValue:false}, curTab:"ath", compare:[] };
+const store = {
+  get(){ try{ return JSON.parse(localStorage.getItem("inani-demo")); }catch(e){ return null; } },
+  set(){ try{ localStorage.setItem("inani-demo", JSON.stringify({user:ST.user,plan:ST.plan,connected:ST.connected,data:ST.data})); }catch(e){} },
+  clear(){ try{ localStorage.removeItem("inani-demo"); }catch(e){} }
+};
+
+// ── NAVIGATION ─────────────────────────────────────
+const NAV_ICONS = {
+  value:`<svg viewBox="0 0 24 24"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>`,
+  discover:`<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>`,
+  rank:`<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>`,
+  pulse:`<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M7 11h10M7 15h6"/></svg>`,
+  deals:`<svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/></svg>`,
+  acct:`<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>`
+};
+function homeScreen(){ return ST.user && ST.user.type==="brand" ? "s-discover" : "s-value"; }
+function buildNav(){
+  const brand = ST.user && ST.user.type==="brand";
+  const tabs = brand
+    ? [["s-discover","Discover","discover"],["s-rank","Rankings","rank"],["s-pulse","Pulse","pulse"],["s-deals","Briefs","deals"],["s-account","Account","acct"]]
+    : [["s-value","My Value","value"],["s-rank","Rankings","rank"],["s-pulse","Pulse","pulse"],["s-deals","Deals","deals"],["s-account","Account","acct"]];
+  $("mainnav").innerHTML = tabs.map(([s,l,i])=>`<button role="tab" data-s="${s}" aria-selected="false">${NAV_ICONS[i]}${l}</button>`).join("");
+  $("mainnav").querySelectorAll("[role=tab]").forEach(b=>b.addEventListener("click",()=>navTo(b.dataset.s)));
+}
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active");
+  document.querySelector("main").scrollTo({top:0});
+}
+function navTo(sid){
+  document.querySelectorAll("nav [role=tab]").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.s===sid || (sid==="s-accounts"&&b.dataset.s==="s-value"))));
+  if(sid==="s-rank") renderRank();
+  if(sid==="s-plans") renderPlans();
+  if(sid==="s-value") renderValue();
+  if(sid==="s-deals") renderDeals();
+  if(sid==="s-accounts") renderPlatforms();
+  if(sid==="s-discover") renderDiscover();
+  if(sid==="s-account") renderAccount();
+  showScreen(sid);
+}
+document.addEventListener("click",e=>{
+  const g=e.target.closest("[data-goto]");
+  if(g) navTo(g.dataset.goto);
+});
+
+// ── TOAST / UPSELL ─────────────────────────────────
+function showToast(msg,target){
+  const old=$("toast"); if(old) old.remove();
+  const t=document.createElement("div");
+  t.id="toast"; t.textContent=msg;
+  if(target) t.addEventListener("click",()=>{navTo(target);t.remove();});
+  document.body.appendChild(t);
+  setTimeout(()=>{ if(t.parentElement) t.remove(); },6000);
+}
+function upsell(title,body){
+  $("up-title").textContent=title;
+  $("up-body").textContent=body;
+  $("upsell-modal").classList.remove("hidden");
+}
+$("up-close").addEventListener("click",()=>$("upsell-modal").classList.add("hidden"));
+$("up-go").addEventListener("click",()=>{ $("upsell-modal").classList.add("hidden"); renderPlans(); navTo("s-plans"); });
+$("upsell-modal").addEventListener("click",e=>{ if(e.target===$("upsell-modal")) $("upsell-modal").classList.add("hidden"); });
+
+// ── AUTH FLOW ──────────────────────────────────────
+let regType="athlete";
+$("btn-start").addEventListener("click",()=>showScreen("s-register"));
+$("btn-tour").addEventListener("click",()=>$("auth-more").scrollIntoView({behavior:"smooth",block:"start"}));
+
+// Rotating hero photography on the front door
+(function(){
+  const shots=["rugby-scrum","football-stadium","cricket-proteas-bat","rugby-stormers-1","football-banyana-1"].map(n=>"assets/"+n+".jpg");
+  shots.forEach(s=>{const im=new Image();im.src=s;});
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let i=0, front=true;
+  setInterval(()=>{
+    if(!$("s-auth").classList.contains("active")) return;
+    i=(i+1)%shots.length;
+    const show=front?$("hero-b"):$("hero-a"), hide=front?$("hero-a"):$("hero-b");
+    show.style.backgroundImage=`url('${shots[i]}')`;
+    show.style.opacity="1"; hide.style.opacity="0";
+    front=!front;
+  },5200);
+})();
+$("reg-type").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+  $("reg-type").querySelectorAll("button").forEach(x=>x.setAttribute("aria-selected","false"));
+  b.setAttribute("aria-selected","true");
+  regType=b.dataset.t;
+  $("r-name-label").textContent = regType==="athlete"?"Your name":regType==="team"?"Team / club name":"Company name";
+  $("r-name").placeholder = regType==="athlete"?"e.g. Siya Kolisi":regType==="team"?"e.g. Orlando Pirates":"e.g. Sasol Brand Team";
+  $("reg-sport-wrap").style.display = regType==="brand"?"none":"grid";
+}));
+$("btn-register").addEventListener("click",()=>{
+  const name=$("r-name").value.trim(), email=$("r-email").value.trim();
+  const ok = name && /.+@.+\..+/.test(email) && $("r-popia").checked;
+  $("r-err").style.display = ok?"none":"block";
+  $("r-name").setAttribute("aria-invalid", String(!name));
+  $("r-email").setAttribute("aria-invalid", String(!/.+@.+\..+/.test(email)));
+  if(!ok) return;
+  ST.user={ type:regType, name, email, code:$("r-code").value, tier:$("r-tier").value };
+  renderPlans();
+  showScreen("s-plans");
+});
+
+// ── PLANS + SANDBOX PAY ────────────────────────────
+function plansFor(){ return Object.entries(PLANS).filter(([,p])=>p.for.includes(ST.user?ST.user.type:"athlete")); }
+function renderPlans(){
+  const list=plansFor();
+  ST.pendingPlan=null;
+  $("btn-plan-next").disabled=true;
+  $("plans-sub").textContent = ST.user&&ST.user.type==="brand"
+    ? "Indicative launch pricing. The demand side funds the platform."
+    : "Indicative launch pricing — R99 sits next to a streaming subscription, not an agency retainer.";
+  $("plan-list").innerHTML=list.map(([id,p])=>`
+    <div class="plan" role="button" tabindex="0" data-plan="${id}" aria-selected="${ST.plan===id}">
+      <div class="pprice">${p.price?fmtR(p.price):"R0"}<small>${p.price?" /mo":" forever"}</small></div>
+      <div class="pname">${p.name}</div>
+      <div class="tagline">${p.tagline}</div>
+      <ul>${p.feats.map(f=>`<li>${f}</li>`).join("")}${p.nofeats.map(f=>`<li class="no">${f}</li>`).join("")}</ul>
+    </div>`).join("");
+  $("plan-list").querySelectorAll(".plan").forEach(el=>{
+    const pick=()=>{
+      $("plan-list").querySelectorAll(".plan").forEach(x=>x.setAttribute("aria-selected","false"));
+      el.setAttribute("aria-selected","true");
+      ST.pendingPlan=el.dataset.plan;
+      $("btn-plan-next").disabled=false;
+    };
+    el.addEventListener("click",pick);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}});
+  });
+}
+$("btn-plan-next").addEventListener("click",()=>{
+  const id=ST.pendingPlan; if(!id) return;
+  const p=PLANS[id];
+  if(p.price===0){ activate(id); return; }
+  $("pay-title").textContent=p.name;
+  $("pay-sub").textContent=fmtR(p.price)+" per month · cancel anytime · POPIA-compliant billing";
+  $("pay-amt").textContent=fmtR(p.price);
+  $("btn-pay").style.display=""; $("pay-wait").style.display="none";
+  showScreen("s-pay");
+});
+$("btn-pay").addEventListener("click",()=>{
+  $("btn-pay").style.display="none";
+  $("pay-wait").style.display="block";
+  setTimeout(()=>activate(ST.pendingPlan),1600);
+});
+function activate(id){
+  ST.plan=id; store.set();
+  enterApp();
+  showToast(PLANS[id].name+" active — your entitlements have been updated.");
+}
+function enterApp(){
+  document.body.classList.remove("noauth");
+  $("hdr-plan").textContent=PLANS[ST.plan].short.toUpperCase()+" · DEMO";
+  buildNav();
+  navTo(homeScreen());
+}
+
+// ── OWN VALUE (athlete / team) ─────────────────────
+function ownSub(){
+  const u=ST.user;
+  return (CODES[u.code]||u.code)+" · "+(TIERS[u.tier]||"Professional")+(u.type==="team"?" · Team property":"");
+}
+function renderValue(){
+  if(!ST.user) return;
+  if(ST.user.type==="brand"){ navTo("s-discover"); return; }
+  const has=Object.keys(ST.connected).length>0;
+  $("val-noaccounts").style.display=has?"none":"block";
+  $("val-live").style.display=has?"block":"none";
+  if(!has){
+    $("v-name-na").textContent=ST.user.name;
+    $("v-sub-na").textContent=ownSub();
+    return;
+  }
+  computeValue();
+}
+function totalConnectedFollowers(){ return Object.values(ST.data).reduce((s,d)=>s+(d.followers||0),0); }
+function computeValue(){
+  const u=ST.user, E=ent();
+  const foll=totalConnectedFollowers();
+  const rate=RATES[u.code]||RATES.athletics;
+  const tw=TIER_W[u.tier]||1.0;
+  const perStill=(foll/1000)*rate*tw*1.05;
+  const monthly=perStill*18*1.09;
+
+  $("v-name").textContent=u.name;
+  $("v-sub").textContent=ownSub();
+
+  const el=$("v-rand"), t0=performance.now(), dur=900;
+  (function tick(t){
+    const k=Math.min(1,(t-t0)/dur), e2=1-Math.pow(1-k,3);
+    el.textContent=fmtR(monthly*e2);
+    if(k<1) requestAnimationFrame(tick);
+  })(t0);
+
+  $("v-pct").textContent="P68 of "+(CODES[u.code]||u.code)+" cohort";
+  $("v-pp").textContent=fmtR(perStill)+" per still post";
+  const nc=Object.keys(ST.connected).length;
+  $("v-plats").textContent=nc+" platform"+(nc!==1?"s":"")+" connected";
+  $("v-total").textContent=fmt(foll);
+  const now=new Date();
+  $("v-ts").textContent="Last pulled "+now.getHours()+":"+String(now.getMinutes()).padStart(2,"0");
+  $("v-cred").textContent=cred("VERIFIED API PULLS × "+nc);
+
+  // Breakdown — verified strokes, credential per row
+  const plats=Object.entries(ST.data).filter(([,d])=>d.followers>0);
+  const maxF=plats.length?Math.max(...plats.map(([,d])=>d.followers)):1;
+  $("v-breakdown").innerHTML=plats.map(([pid,d])=>{
+    const p=PLATFORMS.find(x=>x.id===pid); if(!p) return "";
+    return `<div class="plat-bar-row verified">
+      <div class="plat-bar-icon" style="background:${p.bg}">${ICONS[pid]}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${p.name}<span class="ver-tag">VERIFIED</span></div>
+        <div class="mini-bar" style="width:${Math.max(3,d.followers/maxF*100)}%;background:${p.color}"></div>
+        <div class="cred">${cred(p.api)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--disp);font-weight:800;font-size:16px">${fmt(d.followers)}</div>
+        <div style="font-size:10px;color:var(--chalk-dim)">${Math.round(d.followers/foll*100)}%</div>
+      </div>
+    </div>`;
+  }).join("")||`<p class="empty">No platforms connected yet.</p>`;
+
+  // Rate card — gated by package
+  if(E.ownRateCard){
+    $("rc-wrap").innerHTML=`<div class="card solid">
+      <span class="kick">Your rate card · ${CODES[u.code]||u.code} · ${TIERS[u.tier]||""}</span>
+      <hr class="hair">
+      <div class="rc">${ASSETS.map(a=>`<div class="a">${a[0]}</div><div class="p">${fmtR(perStill*a[1])}</div>`).join("")}
+        <div class="a" style="padding-top:9px;border-top:1px solid var(--line);margin-top:4px">Monthly retainer (blended)</div>
+        <div class="p" style="padding-top:9px;border-top:1px solid var(--line);margin-top:4px;color:var(--gold)">${fmtR(monthly)}</div>
+      </div>
+      <p style="font-size:11.5px;color:var(--chalk-dim);margin-top:8px">Cohort corridor (still): ${fmtR(perStill*.82)} – ${fmtR(perStill*1.18)}</p>
+      <div class="cred">${cred("COHORT P25–P75")}</div>
+      <details><summary>How this is calculated</summary>
+        <p>Value = (verified followers ÷ 1,000) × code rate × tier weight × engagement modifier. Followers pull read-only from official platform APIs every 15 minutes. Format multipliers calibrated against a 2022 Springbok PR rate card (IG still R45k, video R55k) — reproduced within 1% for a national-tier rugby athlete. Refreshed monthly from live deal data. Methodology ${MV}.</p>
+      </details>
+    </div>`;
+  } else {
+    $("rc-wrap").innerHTML=`<div class="lockcard">
+      <svg class="lk" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <h3>Rate card locked</h3>
+      <p>${ST.user.type==="team"?"Team Pro":"Athlete Pro"} generates your rand rate card per asset — feed post, Reel, story, appearance — anchored to real deal data.</p>
+      <button class="btn" data-goto="s-plans" onclick="renderPlans()">Unlock from ${ST.user.type==="team"?"R999":"R99"}/mo →</button>
+    </div>`;
+  }
+}
+
+// ── ACCOUNTS / OAUTH SIM ───────────────────────────
+function renderPlatforms(){
+  const nc=Object.keys(ST.connected).length;
+  $("conn-count").textContent=nc;
+  if(ST.user) $("acc-sub").textContent="Connect your platforms, "+ST.user.name.split(" ")[0]+". Read-only pulls every 15 minutes — you consent once.";
+  $("platform-list").innerHTML=PLATFORMS.map(p=>{
+    const conn=ST.connected[p.id], d=ST.data[p.id];
+    return `<div class="plat-row">
+      <div class="plat-icon" style="background:${p.bg}">${ICONS[p.id]}</div>
+      <div style="flex:1;min-width:0">
+        <div class="plat-name">${p.name}</div>
+        <div class="plat-api">${p.api}</div>
+        ${conn?`<div class="plat-ts">Pulled just now · ${fmt(d.followers)} followers</div>`:""}
+      </div>
+      <div style="flex:0 0 auto">
+        ${conn?`<button class="conn-btn live" disabled>✓ Live</button>`:`<button class="conn-btn" data-oauth="${p.id}">Connect</button>`}
+      </div>
+    </div>`;
+  }).join("");
+  $("platform-list").querySelectorAll("[data-oauth]").forEach(b=>b.addEventListener("click",()=>openOAuth(b.dataset.oauth)));
+}
+let pendingPid=null;
+function openOAuth(pid){
+  const p=PLATFORMS.find(x=>x.id===pid); if(!p) return;
+  pendingPid=pid;
+  $("modal-icon").style.background=p.bg;
+  $("modal-icon").innerHTML=ICONS[pid];
+  $("modal-title").textContent="Connect "+p.name;
+  $("modal-desc").textContent=p.desc;
+  $("modal-platform-domain").textContent=p.domain;
+  $("modal-connecting").style.display="none";
+  $("modal-btns").style.display="";
+  $("oauth-modal").classList.remove("hidden");
+}
+function closeOAuth(){ $("oauth-modal").classList.add("hidden"); pendingPid=null; }
+function simulateOAuthReturn(pid){
+  const p=PLATFORMS.find(x=>x.id===pid);
+  $("modal-btns").style.display="none";
+  $("modal-connecting").style.display="block";
+  $("modal-conn-msg").innerHTML='Opening '+p.name+' login…<br><span style="font-size:11px">In production you log in on '+p.domain+' — Inani never sees your password</span>';
+  setTimeout(()=>{
+    $("modal-conn-msg").innerHTML='<span style="color:var(--grow)">✓ Authorised by '+p.name+'</span><br><span style="font-size:11px">Pulling your follower count via '+p.api+'…</span>';
+    setTimeout(()=>{
+      const demoData={
+        ig:{followers:48200}, tiktok:{followers:22400}, fb:{followers:31000}, x:{followers:9400}, yt:{followers:5200},
+        linkedin:{followers:3800}, snapchat:{followers:11000}, threads:{followers:6700}, pinterest:{followers:2100}, twitch:{followers:890}
+      };
+      const d=demoData[pid]||{followers:5000};
+      d.ts="just now";
+      ST.connected[pid]=true; ST.data[pid]=d; store.set();
+      closeOAuth(); renderPlatforms();
+      showToast(p.name+" connected — "+fmt(d.followers)+" followers pulled (sample data). Your value has updated →","s-value");
+    },1500);
+  },1300);
+}
+$("modal-ok").addEventListener("click",()=>{ if(pendingPid) simulateOAuthReturn(pendingPid); });
+$("modal-cancel").addEventListener("click",closeOAuth);
+$("oauth-modal").addEventListener("click",e=>{ if(e.target===$("oauth-modal")) closeOAuth(); });
+
+// ── RANKINGS (Inani Intelligence) ──────────────────
+$("tab-ath").addEventListener("click",()=>{ ST.curTab="ath"; renderRank(); });
+$("tab-team").addEventListener("click",()=>{ ST.curTab="team"; renderRank(); });
+
+function verState(r){
+  const anyU=Object.values(r.platforms).some(p=>!p.v&&p.f>0);
+  const anyV=Object.values(r.platforms).some(p=>p.v&&p.f>0);
+  return anyV&&anyU?"partial":anyV?"verified":"estimates";
+}
+function renderRank(){
+  const E=ent(), isTeam=ST.curTab==="team";
+  $("tab-ath").setAttribute("aria-selected",String(!isTeam));
+  $("tab-team").setAttribute("aria-selected",String(isTeam));
+  ST.compare=[]; updateTray();
+
+  // Locked tab for basic packages (athlete basic → teams locked; team basic → athletes locked)
+  const tabLocked = (E.lockedTab==="team"&&isTeam)||(E.lockedTab==="ath"&&!isTeam);
+  if(tabLocked){
+    $("rank-card").style.display="none"; $("rank-note").textContent=""; $("rank-promo").innerHTML="";
+    $("rank-h1").textContent="Rankings";
+    $("rank-lock").innerHTML=`<div class="lockcard">
+      <svg class="lk" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <h3>${isTeam?"Team":"Athlete"} rankings locked</h3>
+      <p>Your package covers the top-20 leaderboard in your code. The Elite package unlocks full rankings across every code — athletes and teams.</p>
+      <button class="btn" data-goto="s-plans" onclick="renderPlans()">Upgrade →</button>
+    </div>`;
+    return;
+  }
+  $("rank-lock").innerHTML=""; $("rank-card").style.display="";
+
+  let list = isTeam?[...TEAMS]:[...ATHLETES];
+  let scopeNote="";
+  if(E.rankScope==="code20"&&ST.user){
+    const myCode=CODES[ST.user.code]||ST.user.code;
+    list=list.filter(r=>r.code===myCode||r.code===myCode+" (W)");
+    $("rank-h1").textContent="Top 20 · "+myCode;
+    scopeNote="Your package: top-20 leaderboard in "+myCode+". Elite unlocks every code. ";
+  } else {
+    $("rank-h1").textContent="Rankings";
+  }
+  const sorted=list.sort((a,b)=>b.totalAll-a.totalAll).slice(0,20);
+  if(!sorted.length){
+    $("ranklist").innerHTML=`<p class="empty">No ${isTeam?"teams":"athletes"} indexed in this code yet — founding-partner pulls in progress.</p>`;
+    $("rankinsight").style.display="none"; $("rank-note").textContent=scopeNote;
+    return;
+  }
+  $("rankinsight").style.display="";
+  const max=sorted[0].totalAll;
+  const brand=E.discover;
+  $("ranklist").innerHTML=sorted.map((r,i)=>{
+    const vs=verState(r);
+    const vTxt=vs==="verified"?'<span style="color:var(--grow)">verified</span>':vs==="partial"?'<span style="color:var(--gold)">partial · EST</span>':'<span style="color:var(--blue)">EST — all modelled</span>';
+    const openable=E.openOthers;
+    return `<div class="rankrow ${openable?"open":""}" data-i="${i}" role="${openable?"button":"listitem"}" ${openable?'tabindex="0"':""}>
+      <div class="rn">${i+1}</div>
+      <div>
+        <div class="rnm">${esc(r.name)}${openable?" ›":LOCK_SVG}</div>
+        <div class="rcd">${esc(r.code)} · ${vTxt}</div>
+        <div class="rbar ${vs==="verified"?"v":""}" style="width:${Math.max(4,r.totalAll/max*100)}%"></div>
+      </div>
+      <div style="display:flex;align-items:center">
+        <div class="rf">${fmt(r.totalAll)}</div>
+        ${brand?`<input type="checkbox" class="cmp-check" data-cmp="${i}" aria-label="Compare ${esc(r.name)}">`:""}
+      </div>
+    </div>`;
+  }).join("");
+
+  $("ranklist").querySelectorAll(".rankrow").forEach(el=>{
+    const open=()=>{
+      const item=sorted[+el.dataset.i];
+      if(ent().openOthers){ openEntity(item,isTeam,false); }
+      else if(ST.plan==="free"){ upsell("Insights are locked on Free","The free package shows the rankings only. Your own insights stay free — upgrade to open verified breakdowns, reach and engagement on anyone else."); }
+      else { upsell("Full insights need Elite","Your package covers your own analytics and the top-20 board. Elite opens any profile — reach, engagement, growth — across every code. Rate cards stay private, always."); }
+    };
+    el.addEventListener("click",e=>{ if(e.target.classList.contains("cmp-check"))return; open(); });
+    el.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&el.classList.contains("open")){e.preventDefault();open();}});
+  });
+  if(brand){
+    $("ranklist").querySelectorAll("[data-cmp]").forEach(c=>c.addEventListener("change",()=>{
+      const item=sorted[+c.dataset.cmp];
+      if(c.checked){ if(ST.compare.length>=3){ c.checked=false; showToast("Compare up to 3 at a time."); return; } ST.compare.push(item); }
+      else ST.compare=ST.compare.filter(x=>x.name!==item.name);
+      updateTray();
+    }));
+  }
+
+  $("rankinsight").innerHTML = isTeam
+    ? `<b>Orlando Pirates is the most verified property on the board</b> — all four major platforms confirmed. Every figure carries its verification status and methodology version.`
+    : `<b>AB de Villiers: 29.9M on Instagram, verified</b> — roughly 2× the Proteas' entire team footprint. Value concentrates in people, not badges; Inani prices people.`;
+  const promoTarget=ATHLETES.find(a=>a.name==="Thembi Kgatlana");
+  $("rank-promo").innerHTML=`<div class="promo" role="button" tabindex="0">
+    <div class="sthumb" style="background-image:url('assets/football-banyana-1.jpg')"></div>
+    <div style="flex:1"><span class="sp-tag">Promoted profile</span>
+      <div style="font-weight:700;font-size:14px">Thembi Kgatlana</div>
+      <div style="font-size:11.5px;color:var(--chalk-dim)">Football (W) · 5.9% eng EST · WAFCON month — promoted by her agency</div>
+    </div></div>`;
+  $("rank-promo").querySelector(".promo").addEventListener("click",()=>{
+    if(ent().openOthers&&promoTarget) openEntity(promoTarget,false);
+    else { $("upsell-modal").classList.remove("hidden"); }
+  });
+  $("rank-note").textContent=scopeNote+"Totals are all-platform. Green = verified pull · blue + EST = modelled pending consent · Sponsored and promoted placements are always labelled · "+cred("INFLUENCE INDEX");
+}
+
+// ── COMPARE (brand) ────────────────────────────────
+function updateTray(){
+  $("cmp-count").textContent=ST.compare.length;
+  $("cmp-tray").classList.toggle("show",ST.compare.length>=2);
+}
+$("cmp-open").addEventListener("click",()=>{
+  const rows=ST.compare.map(e=>({e,m:model(e)}));
+  const best=fn=>Math.max(...rows.map(fn));
+  const cell=(v,isBest,txt)=>`<td class="${isBest?"cmp-best":""}">${txt}</td>`;
+  $("cmp-table").innerHTML=`
+    <thead><tr><th></th>${rows.map(r=>`<th>${esc(r.e.name.split(" ").slice(-1)[0])}</th>`).join("")}</tr></thead>
+    <tbody>
+      <tr><td>Code</td>${rows.map(r=>`<td>${esc(r.e.code)}</td>`).join("")}</tr>
+      <tr><td>Followers</td>${rows.map(r=>cell(0,r.e.totalAll===best(x=>x.e.totalAll),fmt(r.e.totalAll))).join("")}</tr>
+      <tr><td>Reach 30d EST</td>${rows.map(r=>cell(0,r.m.reach===best(x=>x.m.reach),fmt(r.m.reach))).join("")}</tr>
+      <tr><td>Eng rate EST</td>${rows.map(r=>cell(0,r.m.eng===best(x=>x.m.eng),pct1(r.m.eng))).join("")}</tr>
+      <tr><td>Growth /mo EST</td>${rows.map(r=>cell(0,r.m.growth===best(x=>x.m.growth),"+"+fmt(r.m.growth))).join("")}</tr>
+      <tr><td>Verified plats</td>${rows.map(r=>{const n=Object.values(r.e.platforms).filter(p=>p.v&&p.f>0).length;return `<td>${n}</td>`;}).join("")}</tr>
+    </tbody>`;
+  $("cmp-modal").classList.remove("hidden");
+});
+$("cmp-close").addEventListener("click",()=>$("cmp-modal").classList.add("hidden"));
+$("cmp-modal").addEventListener("click",e=>{ if(e.target===$("cmp-modal")) $("cmp-modal").classList.add("hidden"); });
+
+// ── ENTITY DETAIL ──────────────────────────────────
+
+// ── TREND CHARTS (deterministic, EST) ──────────────
+function trendSeries(seed,total,growth){
+  const pts=[]; let v=Math.max(1000,total-growth*11*(0.8+ (hash(seed)%40)/100));
+  for(let i=0;i<12;i++){ pts.push(v); v+= growth*(0.55+((hash(seed+"m"+i)%90)/100)); }
+  pts[11]=total; return pts;
+}
+function trendSVG(pts,color){
+  const w=320,h=80,min=Math.min(...pts),max=Math.max(...pts),rg=(max-min)||1;
+  const xy=pts.map((p,i)=>[i*(w/11),h-8-((p-min)/rg)*(h-20)]);
+  const line=xy.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const area=line+` L${w} ${h} L0 ${h} Z`;
+  const last=xy[11];
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <path d="${area}" fill="${color}" opacity=".14"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="3.4" fill="${color}"/>
+  </svg>`;
+}
+function monthLabels(){
+  const M=["AUG","SEP","OCT","NOV","DEC","JAN","FEB","MAR","APR","MAY","JUN","JUL"];
+  return `<div class="tl"><span>${M[0]} '25</span><span>${M[5]} '26</span><span>${M[11]} '26</span></div>`;
+}
+
+// ── PHOTOGRAPHY (background art, per code) ────
+const IMG_BY_NAME={"Springboks":"rugby-boks-picknpay","Proteas (men)":"cricket-proteas-team","Siya Kolisi":"rugby-boks-fnb","Cheslin Kolbe":"rugby-stormers-1","AB de Villiers":"cricket-proteas-bat","Kagiso Rabada":"cricket-celebrate","Faf du Plessis":"cricket-proteas-team","Thembi Kgatlana":"football-banyana-1","Itumeleng Khune":"football-stadium","Orlando Pirates":"football-stadium","Kaizer Chiefs":"football-heritage","Mamelodi Sundowns":"football-bafana-1"};
+const IMG_POOLS={rugby:["rugby-stormers-1","rugby-sharks-1","rugby-boks-fnb","rugby-warmup","rugby-varsity"],cricket:["cricket-proteas-bat","cricket-celebrate","cricket-proteas-team"],"cricket (w)":["cricket-proteas-w1","cricket-proteas-w-team"],football:["football-stadium","football-bafana-1","football-heritage"],"football (w)":["football-banyana-1"]};
+function heroImg(item){
+  if(IMG_BY_NAME[item.name]) return "assets/"+IMG_BY_NAME[item.name]+".jpg";
+  const pool=IMG_POOLS[(item.code||"").toLowerCase()]||["rugby-sharks-1","football-stadium","rugby-scrum"];
+  return "assets/"+pool[hash(item.name)%pool.length]+".jpg";
+}
+
+function openEntity(item,isTeam){
+  const E=ent();
+  ST.cur.entity=item; ST.cur.isTeam=isTeam;
+  $("a-hero").style.backgroundImage=`url('${heroImg(item)}')`;
+  $("a-name").textContent=item.name;
+  const vs=verState(item);
+  $("a-sub").textContent=item.code+" · "+item.signal;
+  const m=model(item);
+  const follTag = vs==="verified"?'<span class="ver-tag">VERIFIED</span>':vs==="partial"?'<span class="ver-tag">PARTIAL</span><span class="est-tag">EST</span>':'<span class="est-tag">EST</span>';
+  $("a-tiles").innerHTML=`
+    <div class="ig4-tile ${vs==="estimates"?"estimate":"verified"}"><div class="ig4-label">Followers (all)</div><div class="ig4-val">${fmt(item.totalAll)}</div><div>${follTag}</div><div class="cred">${vs==="estimates"?cred(EC):cred(VP)}</div></div>
+    <div class="ig4-tile estimate"><div class="ig4-label">Reach 30d</div><div class="ig4-val">${fmt(m.reach)}</div><div><span class="est-tag">EST · MODELLED</span></div><div class="cred">${cred("MODEL")}</div></div>
+    <div class="ig4-tile estimate"><div class="ig4-label">Engagement rate</div><div class="ig4-val">${pct1(m.eng)}</div><div><span class="est-tag">EST · MODELLED</span></div><div class="cred">${cred("MODEL")}</div></div>
+    <div class="ig4-tile estimate"><div class="ig4-label">Growth / month</div><div class="ig4-val gr">+${fmt(m.growth)}</div><div><span class="est-tag">EST · MODELLED</span></div><div class="cred">${cred("MODEL")}</div></div>`;
+
+  $("a-trend").innerHTML=`<span class="kick">12-month follower trend <span class="est-tag">EST · MODELLED</span></span>
+    ${trendSVG(trendSeries(item.name,item.totalAll,m.growth),"#FFB81C")}${monthLabels()}
+    <div class="cred">${cred("MODEL")}</div>`;
+
+  const active=Object.entries(item.platforms).filter(([,d])=>d.f>0).sort(([,a],[,b])=>b.f-a.f);
+  const maxF=active.length?Math.max(...active.map(([,d])=>d.f)):1;
+  $("a-plats").innerHTML=active.map(([pid,d])=>{
+    const p=PLATFORMS.find(x=>x.id===pid); if(!p) return "";
+    return `<div class="ath-plat ${d.v?"verified":"estimate"}" data-p="${pid}" role="button" tabindex="0">
+      <div class="ath-plat-icon" style="background:${p.bg}">${ICONS[pid]}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500">${p.name} ›${d.v?'<span class="ver-tag">VERIFIED</span>':'<span class="est-tag">EST</span>'}</div>
+        <div class="cred">${d.ts}</div>
+        <div class="ap-bar" style="width:${Math.max(5,d.f/maxF*100)}%;background:${p.color}"></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--disp);font-weight:800;font-size:16px">${fmt(d.f)}</div>
+        <div style="font-size:10px;color:var(--chalk-dim)">${Math.round(d.f/item.totalAll*100)}%</div>
+      </div>
+    </div>`;
+  }).join("")||`<p class="empty">No platform data indexed yet.</p>`;
+  $("a-plats").querySelectorAll("[data-p]").forEach(el=>{
+    const open=()=>openPlatform(item,el.dataset.p);
+    el.addEventListener("click",open);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
+  });
+
+  // Rate-card zone: corridors for brands; privacy for everyone else. Never another party's card.
+  if(E.corridor){
+    const rate=RATES[(item.code||"").toLowerCase().replace(/\s*\(.*\)/,"").trim()]||RATES.athletics;
+    const perStill=(item.totalAll/1000)*rate*1.6*1.05;
+    $("a-rc").innerHTML=`<div class="card dashed">
+      <span class="kick">Estimated value corridor — cohort <span class="est-tag">EST</span></span>
+      <div style="font-family:var(--disp);font-weight:800;font-size:26px;color:var(--gold);margin-top:6px">${fmtR(perStill*.82)} – ${fmtR(perStill*1.18)}<span style="font-size:13px;color:var(--chalk-dim);font-family:var(--body);font-weight:500"> / still post</span></div>
+      <div class="cred">${cred("COHORT P25–P75")}</div>
+      <p class="note">Cohort-level corridor, not this ${isTeam?"team":"athlete"}'s personal rate card. Personal cards are private and shared only when your enquiry is accepted.</p>
+    </div>`;
+  } else {
+    $("a-rc").innerHTML=`<div class="privcard"><b>Rate cards are private</b>Inani never shares another ${isTeam?"property's":"athlete's"} personal rate card — at any package level. Brands see cohort value corridors; the personal card travels only with an accepted enquiry.</div>`;
+  }
+  showScreen("s-entity");
+}
+$("back-rank").addEventListener("click",()=>navTo("s-rank"));
+$("back-ath").addEventListener("click",()=>{ if(ST.cur.entity) openEntity(ST.cur.entity,ST.cur.isTeam); else navTo("s-rank"); });
+
+// ── PLATFORM DRILL ─────────────────────────────────
+function openPlatform(entity,pid){
+  const p=PLATFORMS.find(x=>x.id===pid);
+  const d=entity.platforms[pid];
+  if(!p||!d) return;
+  $("p-label").textContent="Inani Intelligence · "+p.name;
+  $("p-name").textContent=entity.name;
+  $("p-backname").textContent=entity.name.split(" ")[0];
+  $("p-platname").textContent=p.name;
+  $("p-vertag").innerHTML=d.v?'<span class="ver-tag">VERIFIED PULL</span>':'<span class="est-tag">EST — CONSENT REQUIRED</span>';
+  const m=model(entity);
+  const share=d.f/Math.max(1,entity.totalAll);
+  const reach=Math.round(m.reach*share), eng=Math.round(m.engaged*share), vis=Math.round(d.f*.07);
+  $("p-tiles").innerHTML=`
+    <div class="ig4-tile ${d.v?"verified":"estimate"}"><div class="ig4-label">Followers</div><div class="ig4-val">${fmt(d.f)}</div><div>${d.v?'<span class="ver-tag">VERIFIED</span>':'<span class="est-tag">EST</span>'}</div><div class="cred">${d.ts}</div></div>
+    <div class="ig4-tile estimate"><div class="ig4-label">Reach 30d</div><div class="ig4-val">${fmt(reach)}</div><div><span class="est-tag">EST</span></div><div class="cred">${cred("MODEL")}</div></div>
+    <div class="ig4-tile estimate"><div class="ig4-label">Engaged 30d</div><div class="ig4-val">${fmt(eng)}</div><div><span class="est-tag">EST</span></div><div class="cred">${cred("MODEL")}</div></div>
+    <div class="ig4-tile estimate"><div class="ig4-label">Profile visits</div><div class="ig4-val">${fmt(vis)}</div><div><span class="est-tag">EST</span></div><div class="cred">${cred("MODEL")}</div></div>`;
+  $("p-grow").textContent="+"+fmt(Math.round(m.growth*share));
+  $("p-trend").innerHTML=trendSVG(trendSeries(entity.name+pid,d.f,Math.round(m.growth*share)),"#37B876")+monthLabels();
+  $("p-growcred").textContent=cred("MODELLED EST");
+  const mix=p.mix.map((l,i)=>([l,[52,31,12,5][i]||5,["#4FA3D9","#37B876","#9DB6A6","#2C6E9E"][i]]));
+  $("p-mix").innerHTML=mix.map(x=>`<div style="width:${x[1]}%;background:${x[2]}"></div>`).join("");
+  $("p-mixlab").innerHTML=mix.map(x=>`<span>${x[0]} ${x[1]}%</span>`).join("");
+  $("p-mixcred").textContent=d.v?cred(p.api):cred("MODELLED EST");
+  showScreen("s-platform");
+}
+
+// ── DISCOVER (brand deep dive) ─────────────────────
+function renderDiscover(){
+  if(!ent().discover){
+    $("d-list").innerHTML=`<div class="lockcard" style="margin:0">
+      <svg class="lk" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <h3>Brand Premium feature</h3>
+      <p>Cross-code discovery, comparison and shortlisting are part of Brand Premium.</p>
+      <button class="btn" data-goto="s-plans" onclick="renderPlans()">See packages →</button></div>`;
+    return;
+  }
+  const code=$("d-code").value, sort=$("d-sort").value;
+  let rows=ATHLETES.map(e=>({e,m:model(e)}));
+  if(code!=="all") rows=rows.filter(r=>r.e.code===code);
+  rows.sort((a,b)=> sort==="eng"?b.m.eng-a.m.eng : sort==="reach"?b.m.reach-a.m.reach : b.e.totalAll-a.e.totalAll);
+  $("d-list").innerHTML=rows.map((r,i)=>`
+    <div class="rankrow open" data-d="${i}" role="button" tabindex="0">
+      <div class="rn">${i+1}</div>
+      <div>
+        <div class="rnm">${esc(r.e.name)} ›</div>
+        <div class="rcd">${esc(r.e.code)} · ENG ${pct1(r.m.eng)} EST · REACH ${fmt(r.m.reach)} EST</div>
+        <div class="rbar" style="width:${Math.max(6,r.m.eng*12)}%"></div>
+      </div>
+      <div class="rf">${fmt(r.e.totalAll)}</div>
+    </div>`).join("")||`<p class="empty">No athletes match this filter yet.</p>`;
+  $("d-list").querySelectorAll("[data-d]").forEach(el=>{
+    const open=()=>openEntity(rows[+el.dataset.d].e,false);
+    el.addEventListener("click",open);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
+  });
+}
+$("d-code").addEventListener("change",renderDiscover);
+$("d-sort").addEventListener("change",renderDiscover);
+
+// ── FEED & DEALS (Inani Insights / Marketplace) ────
+const FEED=[
+  ["DEAL","SA Rugby crosses R2bn — sponsorship up 74% to R738.6m","Record commercial year on the back of world champions; ±30 brands across four tiers. The union still posted a R33m net loss — every rand of inventory yield is now existential.","R738.6m"],
+  ["PLAYER","The Mbokazi arc: R0 rate card to global property in 18 months","Pirates debut Dec 2024 → $3m Chicago Fire → MLS All-Star → Opta World Cup breakout. Value repriced in real time — no SA platform had a number.","$3.0m"],
+  ["WOMEN","Banyana defend WAFCON in Morocco this month","Sasol renewed to 2029 — a 20-year backing arc. The HSL 2026 broadcast reset is built explicitly to grow sponsor value.","2009→2029"],
+  ["LEAGUE","SA20 Season 3: +62% social growth, +96% India media value","400,000+ fans, 70% more sell-outs — measured by offshore tools in someone else's currency.","+96% India"],
+  ["NETBALL","TNL and SPAR Proteas: the most under-priced properties on the board","SA's largest women's participation sport. Cohort benchmarks make the mispricing visible and correctable.","NWC 2023"],
+  ["MOVE","Mofokeng linked to Bayer Leverkusen after World Cup breakout","Bafana's Round of 32 run repriced a generation — mostly on personal handles, not federation pages.","Round of 32"]
+];
+const DEALS=[
+  ["Boot brand","HSL striker — 6-post boot launch","Women's football · 20k+ followers · Gauteng or WC · verified data required","R8,500–R14,000"],
+  ["National bank","Netball ambassador — 12-month schools campaign","TNL or SPAR Proteas pathway · strong school-age reach · verified platform data","R120,000/yr"],
+  ["Energy drink","Schools rugby content series — Derby season","1st XV athletes · guardian consent · 4 videos across IG and TikTok","R3,000–R6,000/athlete"],
+  ["Telco","Varsity Cup match-day takeovers","Any code · campus creators · 8 fixtures · multi-platform preferred","R2,500/fixture"]
+];
+const FEED_IMG=["rugby-boks-picknpay","football-bafana-1","football-banyana-1","cricket-celebrate","cricket-proteas-w-team","football-heritage"];
+const SPONSORED=`<article class="story sponsored"><div class="sthumb" style="background-image:url('assets/rugby-varsity.jpg')"></div><div class="sbody"><span class="sp-tag">Sponsored</span><h3>Derby season content series — schools rugby</h3><p>An energy-drink brand is recruiting 1st XV athletes on Inani. R3,000–R6,000 per athlete. <span class="sv">Open brief →</span></p></div></article>`;
+const feedCards=FEED.map(([t,h,p,v],i)=>`<article class="story"><div class="sthumb" style="background-image:url('assets/${FEED_IMG[i]}.jpg')"></div><div class="sbody"><span class="tag ${t==="WOMEN"||t==="NETBALL"?"w":""}">${t}</span><h3>${h}</h3><p>${p} <span class="sv">${v}</span></p></div></article>`);
+feedCards.splice(2,0,SPONSORED);
+$("feed").innerHTML=feedCards.join("");
+$("feed").querySelector(".story.sponsored").addEventListener("click",()=>navTo("s-deals"));
+function renderDeals(){
+  const brand=ST.user&&ST.user.type==="brand";
+  ST.data.myBriefs=ST.data.myBriefs||[]; ST.data.applied=ST.data.applied||{};
+  $("deals-sub").textContent=brand
+    ?"Post a brief. Verified athletes apply — you only pay a success fee when a deal closes."
+    :"Brands post briefs; you apply with your verified numbers attached. Verified data converts 3× better.";
+
+  const appCount=h=>3+hash(h)%12; // deterministic applicant counts for the demo
+
+  const marketCards=DEALS.map(([b,h,p,fee],i)=>`<div class="deal">
+      <div class="db">${b}</div><h3>${h}</h3><p>${p}</p><div class="fee">${fee}</div>
+      <div class="applicants"><b>${appCount(h)}</b> verified applicants</div>
+      ${brand?"":(ST.data.applied[i]
+        ?`<button class="btn ghost" disabled style="margin-top:10px">Applied ✓ — your verified profile is attached</button>`
+        :`<button class="btn" data-enq="${i}" style="margin-top:10px">Apply with verified profile</button>`)}
+    </div>`).join("");
+
+  if(brand){
+    const mine=ST.data.myBriefs.map((m,i)=>`<div class="deal mybrief">
+        <span class="status-chip">OPEN</span>
+        <h3>${esc(m.title)}</h3><p>${esc(m.req)}</p><div class="fee">${esc(m.budget)}</div>
+        <div class="applicants"><b>${appCount(m.title)}</b> verified applicants — shortlist in Discover</div>
+      </div>`).join("");
+    $("deals").innerHTML=`
+      <div class="card">
+        <span class="kick">Post a brief</span>
+        <label for="nb-title">Headline</label><input id="nb-title" placeholder="e.g. Boot launch — 6 posts, women's football">
+        <label for="nb-req">Requirements</label><input id="nb-req" placeholder="Code · followers · region · deliverables">
+        <div class="grid2">
+          <div><label for="nb-budget">Budget (rand)</label><input id="nb-budget" placeholder="e.g. R8,500–R14,000"></div>
+          <div><label for="nb-cat">Category</label><select id="nb-cat"><option>Product launch</option><option>Ambassadorship</option><option>Content series</option><option>Match-day</option><option>Appearance</option></select></div>
+        </div>
+        <p class="err" id="nb-err">Give the brief a headline, requirements and a budget.</p>
+        <button class="btn" id="nb-post">Post brief → reach verified athletes</button>
+        <p class="note" style="margin-top:10px">Posting is free in the demo. Live marketplace: success fee only on a closed deal (8–12%). Promoted placement available.</p>
+      </div>
+      ${mine?`<span class="kick" style="margin:16px 0 8px">Your briefs</span>${mine}`:""}
+      <span class="kick" style="margin:16px 0 8px">Live on the marketplace</span>${marketCards}`;
+    $("nb-post").addEventListener("click",()=>{
+      const t=$("nb-title").value.trim(), r=$("nb-req").value.trim(), bu=$("nb-budget").value.trim();
+      if(!t||!r||!bu){$("nb-err").style.display="block";return;}
+      $("nb-err").style.display="none";
+      ST.data.myBriefs.unshift({title:t,req:r+" · "+$("nb-cat").value,budget:bu}); store.set();
+      renderDeals(); showToast("Brief posted — verified athletes in your target code will see it.");
+    });
+  } else {
+    $("deals").innerHTML=marketCards;
+    $("deals").querySelectorAll("[data-enq]").forEach(b=>b.addEventListener("click",()=>{
+      ST.data.applied[b.dataset.enq]=true; store.set(); renderDeals();
+      showToast("Application sent with your verified numbers and rate card attached.");
+    }));
+  }
+}
+
+// ── ACCOUNT + DEMO CONTROLS ────────────────────────
+function renderAccount(){
+  const u=ST.user; if(!u) return;
+  $("ac-name").textContent=u.name;
+  $("ac-sub").textContent=u.type==="brand"?"Brand / agency account":ownSub();
+  $("ac-plan").textContent=PLANS[ST.plan].name;
+  $("ac-type").textContent=u.type==="athlete"?"Athlete":u.type==="team"?"Team / Club":"Brand / Agency";
+  $("ac-email").textContent=u.email;
+  const opts=plansFor();
+  $("demo-plans").innerHTML=opts.map(([id,p])=>`<button data-dp="${id}" aria-pressed="${ST.plan===id}">${p.short}${p.price?" · "+fmtR(p.price):""}</button>`).join("");
+  $("demo-plans").querySelectorAll("[data-dp]").forEach(b=>b.addEventListener("click",()=>{
+    ST.plan=b.dataset.dp; store.set();
+    $("hdr-plan").textContent=PLANS[ST.plan].short.toUpperCase()+" · DEMO";
+    renderAccount();
+    showToast(PLANS[ST.plan].name+" preview active — entitlements switched.");
+  }));
+}
+$("btn-signout").addEventListener("click",()=>{
+  store.clear();
+  ST.user=null; ST.plan="free"; ST.connected={}; ST.data={}; ST.compare=[];
+  document.body.classList.add("noauth");
+  $("hdr-plan").textContent="DEMO";
+  showScreen("s-auth");
+});
+
+// ── INIT ───────────────────────────────────────────
+renderDeals();
+const saved=store.get();
+if(saved&&saved.user){
+  ST.user=saved.user; ST.plan=saved.plan||"free";
+  ST.connected=saved.connected||{}; ST.data=saved.data||{};
+  enterApp();
+} else {
+  showScreen("s-auth");
+}
+</script>
+</body>
+</html>
